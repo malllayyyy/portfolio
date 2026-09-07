@@ -44,7 +44,7 @@
 
 @font-face {
   font-family: "Satoshi";
-  src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+  src: url("/fonts/Satoshi-Variable.subset.woff2") format("woff2-variations");
   font-weight: 300 900;
   font-style: normal;
   font-display: swap;
@@ -59,7 +59,7 @@
 }
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
+  src: url("/fonts/JetBrainsMono-Variable.subset.woff2") format("woff2-variations");
   font-weight: 100 800;
   font-style: normal;
   font-display: swap;

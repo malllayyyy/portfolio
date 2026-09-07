@@ -26,14 +26,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
-          href="/fonts/Satoshi-Variable.woff2"
+          href="/fonts/Satoshi-Variable.subset.woff2"
         />
         <link
           rel="preload"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
-          href="/fonts/JetBrainsMono-Variable.woff2"
+          href="/fonts/JetBrainsMono-Variable.subset.woff2"
         />
         <meta name="theme-color" content="#06080B" />
       </head>
