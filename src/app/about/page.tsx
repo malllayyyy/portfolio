@@ -27,7 +27,7 @@ export default function AboutPage() {
           </div>
         </div>
         <div className="mt-16">
-          <Contact />
+          <Contact headingLevel="h2" />
         </div>
       </div>
     </main>

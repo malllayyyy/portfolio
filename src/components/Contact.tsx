@@ -1,10 +1,14 @@
 import { SITE } from '@/content/site';
 import { ResumeLink } from './ResumeLink';
 
-export function Contact() {
+type ContactProps = {
+  headingLevel?: 'h2' | 'h3';
+};
+
+export function Contact({ headingLevel: Heading = 'h3' }: ContactProps) {
   return (
     <div id="contact">
-      <h3 className="font-display font-semibold text-t-lg text-light m-0">Contact</h3>
+      <Heading className="font-display font-semibold text-t-lg text-light m-0">Contact</Heading>
       <p className="mt-6 font-mono text-t-sm flex flex-col gap-3 m-0">
         <a href={`mailto:${SITE.email}`} className="underline decoration-[var(--accent)]">
           {SITE.email}

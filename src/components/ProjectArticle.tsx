@@ -10,9 +10,24 @@ import { ProtocolTable } from './ProtocolTable';
 export function ProjectArticle({ project: p }: { project: Project }) {
   return (
     <article id={p.slug} data-layer={p.layer} aria-labelledby={`${p.slug}-h`}>
-      <h3 id={`${p.slug}-h`} className="font-display font-semibold text-t-lg text-light m-0">
-        {p.title}
-      </h3>
+      {p.slug === 'gamezone' ? (
+        <div className="flex items-center gap-4">
+          <img
+            src="/gamezone/ic_launcher.png"
+            width={96}
+            height={96}
+            alt="GameZone Android launcher icon"
+            className="w-24 h-24 border border-hairline shrink-0"
+          />
+          <h3 id={`${p.slug}-h`} className="font-display font-semibold text-t-lg text-light m-0">
+            {p.title}
+          </h3>
+        </div>
+      ) : (
+        <h3 id={`${p.slug}-h`} className="font-display font-semibold text-t-lg text-light m-0">
+          {p.title}
+        </h3>
+      )}
       <p className="mt-3 font-display text-t-md text-light prose-measure m-0">{p.thesis}</p>
       <LinkRow links={p.links} />
       <DecisionList decisions={p.decisions} />

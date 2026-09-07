@@ -1,10 +1,9 @@
 export function KeyboardHelp() {
+  // Shortcuts restored in later phases:
+  // - Esc: Phase 2 (release game) & Phase 5 (close panel)
+  // - 1 – 4, ↑ / ↓, Home / End: Phase 4 (3D camera depth navigation)
   const rows: [string, string][] = [
-    ['1 – 4', 'jump to a layer datum'],
-    ['↑ / ↓', 'step ±10 m'],
-    ['Home / End', 'Surface / Bedrock'],
     ['Tab', 'move through every exhibit in depth order'],
-    ['Esc', 'close a panel, or release a game'],
   ];
   return (
     <div>
