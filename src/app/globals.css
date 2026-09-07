@@ -1,1 +1,110 @@
 @import "tailwindcss";
+
+@theme {
+  /* § 6.2 palette — closed set, ten tokens */
+  --color-void: #06080B;
+  --color-field: #0E1116;
+  --color-strata: #10151C;
+  --color-hairline: #1B2430;
+  --color-light: #EDF1F5;
+  --color-muted: #8FA0B0;
+  --color-surface-accent: #8FD3FF;
+  --color-device-accent: #FFC46B;
+  --color-engine-accent: #FF5F56;
+  --color-reasoning-accent: #C8FF6A;
+
+  /* § 6.1 families */
+  --font-display: "Satoshi", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* § 6.3 type scale — base 16, ratio 1.25, rounded to whole px */
+  --text-t-xs: 12px;
+  --text-t-xs--line-height: 1.4;
+  --text-t-sm: 14px;
+  --text-t-sm--line-height: 1.5;
+  --text-t-base: 16px;
+  --text-t-base--line-height: 1.6;
+  --text-t-md: 20px;
+  --text-t-md--line-height: 1.4;
+  --text-t-lg: 25px;
+  --text-t-lg--line-height: 1.25;
+  --text-t-xl: 31px;
+  --text-t-xl--line-height: 1.2;
+  --text-t-2xl: 49px;
+  --text-t-2xl--line-height: 1.08;
+  --text-t-2xl--letter-spacing: -0.02em;
+  --text-t-3xl: 61px;
+  --text-t-3xl--line-height: 1.04;
+  --text-t-3xl--letter-spacing: -0.025em;
+
+  /* § 6.4 spacing — the scale is 4,8,12,16,24,32,48,64,96,128 and nothing else.
+     Tailwind's --spacing base of 4px generates exactly these as 1,2,3,4,6,8,12,16,24,32. */
+  --spacing: 4px;
+}
+
+/* § 6.2: exactly one accent is live at any depth. Sections set --accent; nothing
+   else in the site is allowed to name an accent colour directly. */
+:root {
+  --accent: var(--color-surface-accent);
+}
+[data-layer="surface"]   { --accent: var(--color-surface-accent); }
+[data-layer="device"]    { --accent: var(--color-device-accent); }
+[data-layer="engine"]    { --accent: var(--color-engine-accent); }
+[data-layer="reasoning"] { --accent: var(--color-reasoning-accent); }
+[data-layer="bedrock"]   { --accent: var(--color-surface-accent); }
+
+@layer base {
+  html {
+    background: var(--color-void);
+    color: var(--color-light);
+    font-family: var(--font-display);
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body { margin: 0; }
+
+  /* § 9.3 — the focus ring is --surface-accent at every depth, never the layer
+     accent. A focus ring that changes colour is one people stop recognising. */
+  :focus-visible {
+    outline: 2px solid var(--color-surface-accent);
+    outline-offset: 3px;
+  }
+
+  a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+  code, kbd, samp, .path { font-family: var(--font-mono); font-size: var(--text-t-sm); }
+
+  /* § 6.5 — no elevation by shadow, anywhere, ever. */
+  * { box-shadow: none !important; backdrop-filter: none !important; }
+
+  /* § 7 global reduced-motion collapse */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
+  }
+}
+
+/* § 6.4 grid: desktop ≥1024 = 12 col / 72px margin / 24px gutter;
+   tablet 640–1023 = 8 col / 40px margin; mobile <640 = 1 col / 20px margin. */
+@utility page {
+  margin-inline: auto;
+  padding-inline: 20px;
+  max-width: 100%;
+}
+@media (min-width: 640px) { .page { padding-inline: 40px; } }
+@media (min-width: 1024px) {
+  .page {
+    padding-inline: 72px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: 24px;
+  }
+}
+
+/* § 6.3 — body measure capped at 68ch */
+@utility prose-measure { max-width: 68ch; }
