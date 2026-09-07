@@ -14,8 +14,8 @@
   --color-reasoning-accent: #C8FF6A;
 
   /* § 6.1 families */
-  --font-display: "Satoshi", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Satoshi", "Satoshi Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, monospace;
 
   /* § 6.3 type scale — base 16, ratio 1.25, rounded to whole px */
   --text-t-xs: 12px;
@@ -40,6 +40,35 @@
   /* § 6.4 spacing — the scale is 4,8,12,16,24,32,48,64,96,128 and nothing else.
      Tailwind's --spacing base of 4px generates exactly these as 1,2,3,4,6,8,12,16,24,32. */
   --spacing: 4px;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi Fallback";
+  src: local("system-ui"), local("Segoe UI"), local("Helvetica Neue");
+  size-adjust: 101%;
+  ascent-override: 96%;
+  descent-override: 24%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback";
+  src: local("ui-monospace"), local("Consolas"), local("Menlo");
+  size-adjust: 100%;
+  font-display: swap;
 }
 
 /* § 6.2: exactly one accent is live at any depth. Sections set --accent; nothing
