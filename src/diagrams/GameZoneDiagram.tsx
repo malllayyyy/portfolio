@@ -102,7 +102,7 @@ export function GameZoneDiagram() {
         strokeDasharray="4 4"
         markerEnd="url(#arrow-muted)"
       />
-      <text x="500" y="264" textAnchor="middle" fill="#8FA0B0" fontSize="11">
+      <text x="525" y="205" textAnchor="end" fill="#8FA0B0" fontSize="11">
         one click, on the cafe's own machine
       </text>
 
@@ -249,33 +249,36 @@ export function GameZoneDiagram() {
       <g id="pragma-callout">
         <line x1="560" y1="365" x2="590" y2="300" stroke="#FFC46B" strokeWidth="1" />
         <rect
-          x="300"
+          x="290"
           y="325"
-          width="260"
-          height="90"
+          width="270"
+          height="102"
           rx="4"
           fill="#10151C"
           stroke="#FFC46B"
           strokeWidth="1"
         />
-        <text x="312" y="342" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+        <text x="302" y="342" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
           PRAGMA journal_mode = WAL
         </text>
-        <text x="312" y="357" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+        <text x="302" y="357" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
           PRAGMA synchronous  = NORMAL
         </text>
-        <text x="312" y="372" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+        <text x="302" y="372" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
           PRAGMA temp_store   = MEMORY
         </text>
-        <text x="312" y="387" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+        <text x="302" y="387" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
           PRAGMA cache_size   = -10000
         </text>
-        <text x="312" y="402" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
-          BEGIN TRANSACTION … COMMIT   (startup seeding)
+        <text x="302" y="402" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+          BEGIN TRANSACTION … COMMIT
+        </text>
+        <text x="302" y="417" fill="#FFC46B" fontSize="11" xmlSpace="preserve">
+            (startup seeding)
         </text>
         <text
-          x="430"
-          y="432"
+          x="425"
+          y="445"
           textAnchor="middle"
           fill="#FFC46B"
           fontSize="13"
@@ -286,7 +289,7 @@ export function GameZoneDiagram() {
       </g>
 
       {/* Zone Divider */}
-      <line x1="0" y1="440" x2="960" y2="440" stroke="#1B2430" strokeWidth="1" />
+      <line x1="0" y1="460" x2="960" y2="460" stroke="#1B2430" strokeWidth="1" />
 
       {/* Session-Rollover Inset Strip */}
       <text x="30" y="478" fill="#8FA0B0" fontSize="11">

@@ -104,7 +104,7 @@ export function DeploymentPlatformDiagram() {
         {/* E5: N5 <-> N6 */}
         <g>
           <path d="M 618 192 L 652 192" stroke="#8FA0B0" markerStart="url(#arrow)" markerEnd="url(#arrow)" fill="none" />
-          <text x="635" y="215" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
+          <text x="452" y="236" textAnchor="start" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
             lockfile hash → cache hit → skip npm install
           </text>
         </g>
@@ -112,7 +112,7 @@ export function DeploymentPlatformDiagram() {
         {/* E6: N5 -> N7 */}
         <g>
           <path d="M 735 214 L 735 312" stroke="#8FA0B0" markerEnd="url(#arrow)" fill="none" />
-          <text x="743" y="267" textAnchor="start" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
+          <text x="743" y="285" textAnchor="start" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
             upload static output
           </text>
         </g>
@@ -149,7 +149,7 @@ export function DeploymentPlatformDiagram() {
         {/* E11: N4 -> N8 (Focal Edge) */}
         <g>
           <path d="M 760 84 C 760 260, 490 260, 490 392" stroke="#8FD3FF" strokeWidth="2" markerEnd="url(#arrow-focal)" fill="none" />
-          <text x="630" y="275" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
+          <text x="575" y="275" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
             UPDATE projects SET current_deployment_id
           </text>
         </g>
