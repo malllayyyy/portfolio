@@ -137,3 +137,12 @@
 
 /* § 6.3 — body measure capped at 68ch */
 @utility prose-measure { max-width: 68ch; }
+
+/* § 5.3 & § 5.5 — canvas rules: scoped touch-action and focus indicator */
+canvas[data-game] { touch-action: none; display: block; }
+canvas[data-game]:focus,
+canvas[data-game]:focus-visible,
+canvas[data-game][data-captured="true"]:focus {
+  outline: 2px solid var(--color-surface-accent);
+  outline-offset: 3px;
+}

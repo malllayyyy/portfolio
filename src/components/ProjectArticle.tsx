@@ -6,6 +6,7 @@ import { ShotGallery } from './ShotGallery';
 import { DeploymentPlatformDiagram } from '@/diagrams/DeploymentPlatformDiagram';
 import { GameZoneDiagram } from '@/diagrams/GameZoneDiagram';
 import { ProtocolTable } from './ProtocolTable';
+import { GameMount } from './GameMount';
 
 export function ProjectArticle({ project: p }: { project: Project }) {
   return (
@@ -42,7 +43,7 @@ export function ProjectArticle({ project: p }: { project: Project }) {
           <GameZoneDiagram />
         )}
         {p.presentation.kind === 'node-field' && <ProtocolTable />}
-        {/* presentation.kind === 'playable' renders nothing in Phase 1; Task 2.6 mounts GameMount here */}
+        {p.presentation.kind === 'playable' && <GameMount game={p.presentation.game} />}
       </div>
       <p className="mt-12 font-display text-t-base text-muted prose-measure border-l border-hairline pl-6 m-0">
         {p.honesty}
