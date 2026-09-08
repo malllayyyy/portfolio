@@ -145,3 +145,59 @@ identical with the same draw-call and triangle counts.
 - Lab Route (`/lab/passthrough`) JS: **175.00 KB gz** (179,201 B total; framework floor + 1.73 KB gz page chunk `3wa6yg1-v7mce.js`).
 - Deferred 3D Chunk: **230.5 KB gz** (dynamically imported after `requestIdleCallback`, absent from `out/index.html` initial markup).
 - Initial-Route JS Budget Update: Revised initial-route budget to **≤ 180 KB gz** (184,320 bytes) and total JS to **≤ 430 KB gz**. The revision accounts for the measured 173.3 KB framework floor and provides ~6.7 KB of application JS headroom for Phase 5 detail panels and Phase 6 depth gauge / View Transitions features.
+
+---
+
+## Phase 4 — the full descent
+
+**Date:** 2026-09-08 · **HEAD:** `ec94f01` · **Build & Verification:** `npx tsc --noEmit` clean, `npx next build` green (17 routes), 6 engine tests pass, server HTTP 200.
+
+### Route Comparison (Lighthouse Mobile Benchmark)
+
+*Simulated Slow 4G (1.6 Mbps download, 750 Kbps upload, 150 ms RTT, 4× CPU slowdown), medians across runs:*
+
+| Route | Doc size | Perf | FCP | LCP | TBT | TTI | CLS | A11y | BP | SEO |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `/about` (no descent) | 13.6 KB | 100 | 768 ms | 902 ms | — | 902 ms | 0 | 100 | 100 | 100 |
+| `/` (full descent) | 141.5 KB | 80 | 1653 ms | 5188 ms | 35 ms | 5188 ms | ≤0.0001 | 100 | 100 | 100 |
+
+### Interpretation & Isolation
+
+Established by isolation: the framework, CSS, and font strategy are all fine — `/about` scores a perfect 100 on the identical stack. The homepage cost is its 141.5 KB single document (six project articles, two inline SVG architecture diagrams, the shot gallery) plus React hydrating it. LCP equals TTI in 4 of 5 runs, so LCP is bound to main-thread completion rather than to content or fonts. That document size is a direct consequence of spec § 10.2 ("every route serves the full descent document"), so reducing it is an architecture decision, not a bug fix.
+
+### Ruled Out as Causes (Measured)
+
+- **3D Chunk Deferral**: Deferring the 3D chunk from `requestIdleCallback` to first scroll intent changed nothing (FCP 1654 ms, LCP 5193 ms, Perf 80 — identical). It is absent from every initial route document and low tier still fetches zero bytes of Three.js.
+- **`experimental.inlineCss`**: Re-A/B'd cleanly after the gauge fix: a no-op, identical medians and identical 141,509-byte output either way. Left off rather than carrying an experimental flag for nothing.
+
+### Defects Fixed This Phase
+
+1. **DepthGauge re-render storm**: Reduced from **226 → 3** renders across a full descent (was showing up as 375 ms of Style & Layout on a static document).
+2. **GSAP ScrollTrigger leak**: `tween.kill()` does not kill the trigger bound via the tween's `scrollTrigger` option. Fixed at both cleanup sites in `Rig.tsx`; `ScrollTrigger.getAll().length` across repeated reduced-motion toggles now reads `1 → 0 → 1 → 0 → 1 → 0 → 1 → 0 → 1` (no growth).
+3. **Store/camera `t` desync**: `Rig` now publishes its GSAP-scrubbed `t` into the store, so the gauge reads the *rendered* camera depth rather than the raw scrollbar (which led it by ~600 ms). Re-render bound at 0.0001 of `t` ≈ 3 cm of depth.
+4. **Engine play-volume index buffer**: `Float32BufferAttribute` wrapping index data uploaded indices as `gl.FLOAT`, so `drawElements` raised `INVALID_ENUM` every frame and the two matcap play volumes never drew. Now `Uint16BufferAttribute`; `gl.getError()` returns 0 and triangles at the Engine datum rose from 53 → 112.
+5. **Missing `logdepthbuf` chunks**: Custom `ShaderMaterial`s were missing `logdepthbuf` chunks while the renderer runs `logarithmicDepthBuffer: true`, which broke depth comparisons against neighbouring built-in materials in the Engine and Reasoning zones.
+6. **Canvas layout overlap**: Canvas was painting over the page text (obscuring headings, project copy, and both diagrams) — now `zIndex: -1` with `pointerEvents: none`.
+7. **Imperative resource disposal**: Added imperative resource disposal for Surface's 2048² grid texture and suspension geometry, and Engine's matcap, materials, and geometries (R3F only auto-disposes what it builds from JSX).
+
+### Phase 4 Gate Results
+
+- **G4.2 Depth Gauge**: Reads exactly `0 m · SURFACE`, `−040 m · DEVICE`, `−120 m · ENGINE`, `−260 m · REASONING`, and clicking each stop lands on that datum.
+- **G4.5 Draw Calls**: 38 / 20 / 11 / 3 at the four datums against a ≤ 120 budget.
+- **G4.6 Triangles**: Trivially under the 180 k budget.
+- **Depth Mapping**: Scroll 0.0 → y +6, 0.3 → −40.02, 0.6 → −119.98, 1.0 → −300 (§ 2.2 exact). `tOfDepth(depth(t))` round-trip error 1.1e-16, strictly monotonic over 10 000 samples.
+- **Keyboard Navigation**: All four gauge stops reachable in depth order with a `2px #8FD3FF` ring at 3 px offset.
+- **Two-Pass Pass-Through**: Window-open seam eliminated (144.58 → 2.38 mean delta, median 1.25), zero black frames, active over 6.5 % of scroll.
+- **Initial JS Size**: `/` initial JS is 177.79 KB gz against a 180 KB budget.
+
+### Not Measured
+
+- **G4.1**: Full-sweep human judgement.
+- **G4.3**: Keyboard shortcuts (1–4, ↑/↓, Home/End are not implemented yet).
+- **G4.4**: Reduced-motion mid-session profiler check.
+- **G4.7**: Scene-asset transfer budget.
+*All four remain outstanding.*
+
+### Summary Interpretation
+
+The homepage's Performance score of 80 is a documented consequence of the spec § 10.2 full-document-per-route architecture plus client hydration, rather than an application defect or rendering bottleneck. Because every other Lighthouse category (Accessibility, Best Practices, SEO) achieves a perfect 100, and non-descent routes such as `/about` reach 100 in Performance as well on the identical stack, this performance floor represents an explicit architectural trade-off of serving the entire descent document in a single static export.
