@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "npx serve out",
-    "subset-fonts": "bash scripts/subset-fonts.sh"
+    "subset-fonts": "bash scripts/subset-fonts.sh",
+    "test": "vitest run"
   },
   "dependencies": {
+    "motion": "13.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -20,6 +22,7 @@
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",
     "tailwindcss": "4.3.3",
-    "typescript": "5.7.2"
+    "typescript": "5.7.2",
+    "vitest": "2.1.1"
   }
 }
