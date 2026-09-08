@@ -5,6 +5,7 @@ out
 next-env.d.ts
 lh-*.json
 tmp/
+.omp/
 .vercel
 assets/raw/
 

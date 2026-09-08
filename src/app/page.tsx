@@ -1,6 +1,3 @@
-'use client';
-
-import { useMemo } from 'react';
 import { SkipLink } from '@/components/SkipLink';
 import { DepthGauge } from '@/components/DepthGauge';
 import { Hero } from '@/components/Hero';
@@ -10,37 +7,26 @@ import { PortraitSlot } from '@/components/PortraitSlot';
 import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
 import { SceneMount } from '@/components/SceneMount';
-import { DetailPanel } from '@/components/DetailPanel';
-import { ExhibitCard } from '@/components/ExhibitCard';
-import { ExhibitProxyNav, useActiveExhibit, openExhibit, type ExhibitSlug } from '@/three/Exhibit';
+import { DeferredOverlays } from '@/components/DeferredOverlays';
+import { ExhibitProxyNav } from '@/three/exhibit-state';
 import { LAYERS } from '@/content/layers';
 import { PROJECTS } from '@/content/projects';
 import { SITE } from '@/content/site';
 
-function ActiveExhibitCard() {
-  const { activeSlug } = useActiveExhibit();
-  const activeProject = useMemo(
-    () => PROJECTS.find((p) => p.slug === activeSlug),
-    [activeSlug]
-  );
-
-  return (
-    <ExhibitCard
-      project={activeProject}
-      isVisible={!!activeProject}
-      onOpen={(slug) => {
-        if (slug) openExhibit(slug as ExhibitSlug);
-      }}
-      tabIndex={-1}
-    />
-  );
-}
+/**
+ * `Descent` is a server component: every layer section, project article,
+ * diagram and the Bedrock block is real DOM in the first HTML response with
+ * zero JS (§ 8). The only client islands are the descent HUD (`SceneMount`,
+ * `ExhibitProxyNav`, `DepthGauge`) and the deferred overlays.
+ */
 export function Descent() {
   return (
     <>
       <SceneMount />
       <SkipLink />
-      <ExhibitProxyNav />
+      <ExhibitProxyNav
+        exhibits={PROJECTS.map((p) => ({ slug: p.slug, title: p.title, depth: p.depth }))}
+      />
       <DepthGauge />
       <Hero />
       <main className="relative min-h-[900vh]">
@@ -83,8 +69,7 @@ export function Descent() {
           </div>
         </section>
       </main>
-      <ActiveExhibitCard />
-      <DetailPanel />
+      <DeferredOverlays />
     </>
   );
 }
