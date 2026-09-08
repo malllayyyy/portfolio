@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo } from 'react';
 import { SkipLink } from '@/components/SkipLink';
 import { DepthGauge } from '@/components/DepthGauge';
 import { Hero } from '@/components/Hero';
@@ -8,15 +11,36 @@ import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
 import { SceneMount } from '@/components/SceneMount';
 import { DetailPanel } from '@/components/DetailPanel';
+import { ExhibitCard } from '@/components/ExhibitCard';
+import { ExhibitProxyNav, useActiveExhibit, openExhibit, type ExhibitSlug } from '@/three/Exhibit';
 import { LAYERS } from '@/content/layers';
 import { PROJECTS } from '@/content/projects';
 import { SITE } from '@/content/site';
 
+function ActiveExhibitCard() {
+  const { activeSlug } = useActiveExhibit();
+  const activeProject = useMemo(
+    () => PROJECTS.find((p) => p.slug === activeSlug),
+    [activeSlug]
+  );
+
+  return (
+    <ExhibitCard
+      project={activeProject}
+      isVisible={!!activeProject}
+      onOpen={(slug) => {
+        if (slug) openExhibit(slug as ExhibitSlug);
+      }}
+      tabIndex={-1}
+    />
+  );
+}
 export function Descent() {
   return (
     <>
       <SceneMount />
       <SkipLink />
+      <ExhibitProxyNav />
       <DepthGauge />
       <Hero />
       <main className="relative min-h-[900vh]">
@@ -59,6 +83,7 @@ export function Descent() {
           </div>
         </section>
       </main>
+      <ActiveExhibitCard />
       <DetailPanel />
     </>
   );

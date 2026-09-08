@@ -5,6 +5,8 @@ import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, Color } from 'three';
 import type { Object3D, ShaderMaterial } from 'three';
 import { INTERIOR } from './Device';
+import { Exhibit } from '../Exhibit';
+import { NodeField } from '../NodeField';
 
 export type ClientMessageType =
   | 'prompt'
@@ -203,6 +205,10 @@ export function Reasoning() {
           depthWrite={false}
         />
       </lineSegments>
+      {/* Switchboard NodeField Exhibit at y = -278 */}
+      <Exhibit slug="switchboard" depth={-278}>
+        <NodeField />
+      </Exhibit>
 
       {/* Bedrock plane at y = -300 */}
       <mesh

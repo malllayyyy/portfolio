@@ -10,6 +10,7 @@ import Lenis from 'lenis';
 import { depth } from './depth';
 import { getMotion, subscribeMotion } from '../lib/motion-pref';
 import { setScrollT } from '../lib/store';
+import { FrameWatchdog } from '../lib/watchdog';
 declare global {
   interface Window {
     ScrollTrigger?: typeof ScrollTrigger;
@@ -59,9 +60,25 @@ function getT(): number {
  * - Scroll restoration: manual.
  */
 export function Rig() {
-  const { camera, invalidate } = useThree();
+  const watchdogRef = useRef<FrameWatchdog | null>(null);
+  if (!watchdogRef.current) {
+    watchdogRef.current = new FrameWatchdog();
+  }
+  const { camera, gl, invalidate } = useThree();
   const proxyRef = useRef({ t: 0 });
   const isMotionOnRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    const domEl = gl.domElement;
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      watchdogRef.current?.demote();
+    };
+    domEl.addEventListener('webglcontextlost', handleContextLost);
+    return () => {
+      domEl.removeEventListener('webglcontextlost', handleContextLost);
+    };
+  }, [gl]);
   useEffect(() => {
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
@@ -174,7 +191,8 @@ export function Rig() {
     };
   }, [invalidate]);
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
+    watchdogRef.current?.update(delta);
     const isMotionOn = isMotionOnRef.current;
     const t = isMotionOn ? proxyRef.current.t : getT();
 

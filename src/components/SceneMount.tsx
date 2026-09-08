@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-
+import { useTier } from '@/lib/store';
 const Scene = dynamic(() => import('@/three'), { ssr: false });
 /**
  * Gated twice: `tier !== 'low'` so low tier fetches zero bytes of `three`,
@@ -10,7 +10,7 @@ const Scene = dynamic(() => import('@/three'), { ssr: false });
  */
 export function SceneMount() {
   const [ready, setReady] = useState(false);
-
+  const tier = useTier();
   useEffect(() => {
     if (document.documentElement.dataset.tier === 'low') return;
 
@@ -39,6 +39,6 @@ export function SceneMount() {
     return cleanup;
   }, []);
 
-  if (!ready) return null;
+  if (!ready || tier === 'low') return null;
   return <Scene />;
 }

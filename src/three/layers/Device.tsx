@@ -3,6 +3,7 @@
 import { useMemo, useRef } from 'react';
 import { Matrix4, MeshStandardMaterial, Shape } from 'three';
 import type { InstancedMesh, Mesh, Object3D, ShaderMaterial } from 'three';
+import { Exhibit } from '../Exhibit';
 
 export const EXTERIOR = 1;
 export const INTERIOR = 2;
@@ -164,26 +165,28 @@ export function Device({ screenMaterial }: { screenMaterial: ShaderMaterial }) {
       </mesh>
 
       {/* Eight station slabs, one instanced draw call */}
-      <instancedMesh
-        ref={(m) => {
-          stationsRef.current = m;
-          toLayer(INTERIOR)(m);
-          if (m) {
-            stationMatrices.forEach((mat, i) => m.setMatrixAt(i, mat));
-            m.instanceMatrix.needsUpdate = true;
-          }
-        }}
-        args={[undefined, undefined, 8]}
-      >
-        <boxGeometry args={[2.4, 0.12, 1.6]} />
-        <meshStandardMaterial
-          color="#1B2430"
-          emissive="#FFC46B"
-          emissiveIntensity={0.06}
-          metalness={0.2}
-          roughness={0.7}
-        />
-      </instancedMesh>
+      <Exhibit slug="gamezone" depth={-52}>
+        <instancedMesh
+          ref={(m) => {
+            stationsRef.current = m;
+            toLayer(INTERIOR)(m);
+            if (m) {
+              stationMatrices.forEach((mat, i) => m.setMatrixAt(i, mat));
+              m.instanceMatrix.needsUpdate = true;
+            }
+          }}
+          args={[undefined, undefined, 8]}
+        >
+          <boxGeometry args={[2.4, 0.12, 1.6]} />
+          <meshStandardMaterial
+            color="#1B2430"
+            emissive="#FFC46B"
+            emissiveIntensity={0.06}
+            metalness={0.2}
+            roughness={0.7}
+          />
+        </instancedMesh>
+      </Exhibit>
     </group>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from 'three';
 import type { Object3D } from 'three';
 import { EXTERIOR } from './Device';
-
+import { Exhibit } from '../Exhibit';
 /** Assign an object to a single layer channel (§ 2.6). */
 function toLayer(channel: number) {
   return (obj: Object3D | null) => {
@@ -151,48 +151,60 @@ export function Surface() {
       </mesh>
 
       {/* 2. Exhibit Plate 1 at y = −2, offset −7 m in x (1 draw call) */}
-      <mesh ref={toLayer(EXTERIOR)} position={[-7, -2, 0]}>
-        <boxGeometry args={[18, 0.06, 26]} />
-        {isHighTier ? (
-          <meshPhysicalMaterial
-            transmission={0.9}
-            thickness={0.4}
-            roughness={0.08}
-            ior={1.45}
-            color="#EDF1F5"
-            transparent
-          />
-        ) : (
-          <meshStandardMaterial
-            opacity={0.55}
-            transparent
-            roughness={0.08}
-            color="#EDF1F5"
-          />
-        )}
-      </mesh>
+      <Exhibit slug="deployment-platform" depth={-2} position={[-7, -2, 0]}>
+        <mesh ref={toLayer(EXTERIOR)}>
+          <boxGeometry args={[18, 0.06, 26]} />
+          {isHighTier ? (
+            <meshPhysicalMaterial
+              transmission={0.9}
+              thickness={0.4}
+              roughness={0.08}
+              ior={1.45}
+              color="#EDF1F5"
+              emissive="#8FD3FF"
+              emissiveIntensity={0}
+              transparent
+            />
+          ) : (
+            <meshStandardMaterial
+              opacity={0.55}
+              transparent
+              roughness={0.08}
+              color="#EDF1F5"
+              emissive="#8FD3FF"
+              emissiveIntensity={0}
+            />
+          )}
+        </mesh>
+      </Exhibit>
 
       {/* 3. Exhibit Plate 2 at y = −8, offset +7 m in x (1 draw call) */}
-      <mesh ref={toLayer(EXTERIOR)} position={[7, -8, 0]}>
-        <boxGeometry args={[18, 0.06, 26]} />
-        {isHighTier ? (
-          <meshPhysicalMaterial
-            transmission={0.9}
-            thickness={0.4}
-            roughness={0.08}
-            ior={1.45}
-            color="#EDF1F5"
-            transparent
-          />
-        ) : (
-          <meshStandardMaterial
-            opacity={0.55}
-            transparent
-            roughness={0.08}
-            color="#EDF1F5"
-          />
-        )}
-      </mesh>
+      <Exhibit slug="proacademys" depth={-8} position={[7, -8, 0]}>
+        <mesh ref={toLayer(EXTERIOR)}>
+          <boxGeometry args={[18, 0.06, 26]} />
+          {isHighTier ? (
+            <meshPhysicalMaterial
+              transmission={0.9}
+              thickness={0.4}
+              roughness={0.08}
+              ior={1.45}
+              color="#EDF1F5"
+              emissive="#8FD3FF"
+              emissiveIntensity={0}
+              transparent
+            />
+          ) : (
+            <meshStandardMaterial
+              opacity={0.55}
+              transparent
+              roughness={0.08}
+              color="#EDF1F5"
+              emissive="#8FD3FF"
+              emissiveIntensity={0}
+            />
+          )}
+        </mesh>
+      </Exhibit>
 
       {/* 4. 24 suspension lines merged into 1 buffer geometry (1 draw call) */}
       <lineSegments ref={toLayer(EXTERIOR)} geometry={suspensionGeometry}>
