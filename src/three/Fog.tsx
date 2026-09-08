@@ -2,7 +2,6 @@
 
 import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import gsap from 'gsap';
 import { Color } from 'three';
 import type { AmbientLight, DirectionalLight, FogExp2, PointLight } from 'three';
 const FOG_TABLE = [
@@ -69,7 +68,7 @@ export function Fog() {
 
   const prevLayerRef = useRef<number | null>(null);
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
     const cameraY = camera.position.y;
     // 1. Fog color & density + setClearColor
     const density = getFogAtY(cameraY, tempFogColor);
@@ -97,20 +96,14 @@ export function Fog() {
       pointLightRef.current.position.set(0, cameraY - 3.0, 0);
 
       const layerIdx = getLayerIndex(cameraY);
+      const targetColor = ACCENT_COLORS[layerIdx];
       if (prevLayerRef.current === null) {
         prevLayerRef.current = layerIdx;
-        pointLightRef.current.color.copy(ACCENT_COLORS[layerIdx]);
-      } else if (prevLayerRef.current !== layerIdx) {
+        pointLightRef.current.color.copy(targetColor);
+      } else {
         prevLayerRef.current = layerIdx;
-        const targetColor = ACCENT_COLORS[layerIdx];
-        gsap.to(pointLightRef.current.color, {
-          r: targetColor.r,
-          g: targetColor.g,
-          b: targetColor.b,
-          duration: 0.7,
-          ease: 'power2.out',
-          overwrite: 'auto',
-        });
+        const dt = Math.min(delta, 0.1);
+        pointLightRef.current.color.lerp(targetColor, 1 - Math.exp(-dt / 0.18));
       }
     }
   });

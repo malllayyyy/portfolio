@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { PerspectiveCamera } from '@react-three/drei';
 import { CatmullRomCurve3, Vector3 } from 'three';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { PerspectiveCamera as PerspectiveCameraImpl } from 'three';
 import Lenis from 'lenis';
 import { depth } from './depth';
 import { getMotion, subscribeMotion } from '../lib/motion-pref';
@@ -13,7 +11,6 @@ import { setScrollT } from '../lib/store';
 import { FrameWatchdog } from '../lib/watchdog';
 declare global {
   interface Window {
-    ScrollTrigger?: typeof ScrollTrigger;
     __rig?: { cameraY: number; t: number };
   }
 }
@@ -54,7 +51,7 @@ function getT(): number {
 /**
  * Task 4.3 — Camera rig.
  * - PerspectiveCamera, fov 55, near 0.1, far 420, up = (0, 0, -1), looking straight down -Y.
- * - camera.position.y = depth(t) assigned via GSAP ScrollTrigger scrub: 0.6 proxy (~600 ms lag).
+ * - camera.position.y = depth(t) assigned via exponential settle (~600 ms lag).
  * - Lateral drift via Catmull-Rom curve, hard-clamped to ±1.6 m for t ∈ [0.255, 0.345].
  * - Lenis { lerp: 0.09, wheelMultiplier: 1 } (NEVER instantiated under reduced motion).
  * - Scroll restoration: manual.
@@ -64,9 +61,18 @@ export function Rig() {
   if (!watchdogRef.current) {
     watchdogRef.current = new FrameWatchdog();
   }
-  const { camera, gl, invalidate } = useThree();
+  const { camera, gl, invalidate, set, size } = useThree();
+  const camRef = useRef<PerspectiveCameraImpl>(null!);
   const proxyRef = useRef({ t: 0 });
   const isMotionOnRef = useRef<boolean>(true);
+
+  useLayoutEffect(() => {
+    if (!camRef.current) return;
+    const cam = camRef.current;
+    cam.aspect = size.width / size.height;
+    cam.updateProjectionMatrix();
+    set(() => ({ camera: cam }));
+  }, [set, size.width, size.height]);
 
   useEffect(() => {
     const domEl = gl.domElement;
@@ -79,18 +85,13 @@ export function Rig() {
       domEl.removeEventListener('webglcontextlost', handleContextLost);
     };
   }, [gl]);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
 
-    gsap.registerPlugin(ScrollTrigger);
-    if (typeof window !== 'undefined') {
-      window.ScrollTrigger = ScrollTrigger;
-    }
     let lenis: Lenis | null = null;
-    let tween: gsap.core.Tween | null = null;
-    let tickerCb: ((time: number) => void) | null = null;
 
     const setupMotion = () => {
       const isMotionOn = getMotion() === 'on';
@@ -100,58 +101,18 @@ export function Rig() {
         lenis.destroy();
         lenis = null;
       }
-      if (tickerCb) {
-        gsap.ticker.remove(tickerCb);
-        tickerCb = null;
-      }
-      if (tween) {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-        tween = null;
-      }
 
       const initialT = getT();
       proxyRef.current.t = initialT;
+
       if (isMotionOn) {
         lenis = new Lenis({
+          autoRaf: true,
           lerp: 0.09,
           wheelMultiplier: 1,
         });
 
         lenis.scrollTo(window.scrollY, { immediate: true });
-
-        lenis.on('scroll', () => {
-          ScrollTrigger.update();
-          invalidate();
-        });
-
-        tickerCb = (time: number) => {
-          lenis?.raf(time * 1000);
-        };
-        gsap.ticker.add(tickerCb);
-
-        ScrollTrigger.update();
-
-        proxyRef.current.t = 0;
-        tween = gsap.to(proxyRef.current, {
-          t: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: document.documentElement,
-            start: 'top top',
-            end: 'bottom bottom',
-            scrub: 0.6,
-            onUpdate: () => {
-              invalidate();
-            },
-          },
-        });
-
-        if (tween.scrollTrigger) {
-          tween.scrollTrigger.scroll(window.scrollY);
-        }
-        tween.progress(initialT);
-        proxyRef.current.t = initialT;
       } else {
         invalidate();
       }
@@ -160,10 +121,9 @@ export function Rig() {
     setupMotion();
 
     const handleScroll = () => {
-      if (lenis) {
-        lenis.scrollTo(window.scrollY, { immediate: true });
+      if (!isMotionOnRef.current) {
+        invalidate();
       }
-      invalidate();
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -179,23 +139,27 @@ export function Rig() {
         lenis.destroy();
         lenis = null;
       }
-      if (tickerCb) {
-        gsap.ticker.remove(tickerCb);
-        tickerCb = null;
-      }
-      if (tween) {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-        tween = null;
-      }
     };
   }, [invalidate]);
 
   useFrame((_state, delta) => {
     watchdogRef.current?.update(delta);
     const isMotionOn = isMotionOnRef.current;
-    const t = isMotionOn ? proxyRef.current.t : getT();
+    const targetT = getT();
 
+    if (isMotionOn) {
+      const dt = Math.min(delta, 0.1);
+      const diff = targetT - proxyRef.current.t;
+      if (Math.abs(diff) < 1e-6) {
+        proxyRef.current.t = targetT;
+      } else {
+        proxyRef.current.t += diff * (1 - Math.exp(-dt / 0.12));
+      }
+    } else {
+      proxyRef.current.t = targetT;
+    }
+
+    const t = proxyRef.current.t;
     const y = depth(t);
     let x = 0;
     let z = 0;
@@ -223,8 +187,8 @@ export function Rig() {
   });
 
   return (
-    <PerspectiveCamera
-      makeDefault
+    <perspectiveCamera
+      ref={camRef}
       fov={55}
       near={0.02}
       far={420}
