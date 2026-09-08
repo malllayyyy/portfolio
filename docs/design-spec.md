@@ -503,7 +503,7 @@ No `backdrop-filter` anywhere on the site. No box-shadow on any DOM element. Ele
 
 ## 7. Motion spec
 
-Libraries: **Lenis 1.3.26** (scroll normalisation with `autoRaf: true`), **Motion 13.2.0** (DOM panels and cards), **View Transitions API** (0 KB, native, panel routing). No others. `gsap`, `@gsap/react`, and `@react-three/drei` are explicitly absent.
+Libraries: **Lenis 1.3.26** (scroll normalisation with `autoRaf: true`), **View Transitions API** (0 KB, native, panel routing). No others. `motion` (removed: replaced with native CSS transitions), `gsap`, `@gsap/react`, and `@react-three/drei` are explicitly absent.
 
 | # | Element | Trigger | Library / mechanism | Duration & easing | `prefers-reduced-motion: reduce` fallback |
 |---:|---|---|---|---|---|
@@ -514,8 +514,8 @@ Libraries: **Lenis 1.3.26** (scroll normalisation with `autoRaf: true`), **Motio
 | 5 | Fog colour + density | Scroll progress | Per-frame `scene.fog` lerp | Scrubbed, smooth across boundaries | Set instantly per preset |
 | 6 | Layer light-temperature shift | Layer boundary crossing | Per-frame `Color.lerp` on `pointLight.color` | ~700 ms smooth lerp | Set instantly |
 | 7 | Directional light decay | Scroll progress | Per-frame linear lerp on `intensity` | Scrubbed, linear | Set instantly per preset |
-| 8 | Exhibit card in/out | `\|camera.y − exhibit.y\| < 6 m` | Motion, `opacity` + `y: 8 → 0` | 240 ms `easeOut` | Opacity only, 0 ms |
-| 9 | Detail panel open/close | Click / `Enter` / route change | Motion `x: 24 → 0` + opacity; View Transitions for the route | 300 ms `easeOut` | Opacity only, 0 ms. View Transitions are skipped automatically by the browser. |
+| 8 | Exhibit card in/out | `|camera.y − exhibit.y| < 6 m` | Native CSS transition, `opacity` + `translateY(8px → 0)` | 240 ms `easeOut` | Opacity only, 0 ms |
+| 9 | Detail panel open/close | Click / `Enter` / route change | Native CSS transition (`opacity` + `translateX(24px → 0)` desktop, `translateY(24px → 0)` mobile); View Transitions for the route | 300 ms `easeOut` | Opacity only, 0 ms. View Transitions are skipped automatically by the browser. |
 | 10 | Mesh hover highlight | Pointer raycast | Three.js emissive lerp, 120 ms | 120 ms linear | **Kept.** Pointer-driven and instant; it is feedback, not decoration. |
 | 11 | Node-field pulse (Reasoning) | Continuous | Three.js shader `uTime` uniform | Continuous, 0.4 Hz | **rAF stopped.** One static frame, field frozen mid-pulse. |
 | 12 | Collider-ghost drift (Engine) | Continuous | Vertex-shader time uniform | Continuous | Frozen |
@@ -523,6 +523,8 @@ Libraries: **Lenis 1.3.26** (scroll normalisation with `autoRaf: true`), **Motio
 | 14 | Depth-gauge numerals | Every frame the depth changes | Direct `textContent` write, throttled to whole metres | — | **Kept.** It is a readout, not an animation. Never a count-up tween. |
 | 15 | Game canvases | Explicit activation only | Own rAF, fixed timestep (§ 5.1) | 60 Hz sim | **Not auto-started; already true.** Playable if the user chooses — see note below. |
 | 16 | Hero canvas fade-in under the hero text | `requestIdleCallback` after LCP | CSS `opacity` transition | 400 ms linear | 0 ms (or no canvas at all on low tier) |
+
+**Deliberate deviation — Detail panel motion axis split.** The panel transition uses `translateX(24px)` on desktop (≥ 1024 px, 5-column side panel) and `translateY(24px)` on mobile (< 1024 px, 92 vh bottom sheet) at 300 ms `ease-out`. The original uniform horizontal translation was a defect; translating a mobile bottom-sheet panel vertically matches its slide-up positioning while preserving the 24 px spatial offset distance from desktop.
 
 **Global reduced-motion behaviour.** One `matchMedia('(prefers-reduced-motion: reduce)')` check at boot sets `document.documentElement.dataset.motion = 'off'`, and it is **live** — the `change` listener re-applies without a reload. When off:
 

@@ -3,13 +3,10 @@
 import dynamic from 'next/dynamic';
 
 /**
- * The detail panel and the active-exhibit card are the only two pieces of the
- * descent that depend on `motion` (~41 KB gz). Neither renders anything until a
- * panel is opened or the 3D scene reports an exhibit in range, so both — and
- * `motion` with them — load in a deferred chunk that never counts against the
- * initial-route budget (§ 8.1). On a deep-link route the store already carries
- * `panel` from the URL (see `lib/store.ts`), so the panel still opens on cold
- * load, one microtask after this chunk resolves.
+ * The detail panel and active-exhibit card overlays are loaded in a deferred chunk
+ * via next/dynamic with ssr: false so they never block initial route rendering.
+ * On a deep-link route the store already carries `panel` from the URL, so the panel
+ * still opens on cold load, one microtask after this chunk resolves.
  */
 const DetailPanel = dynamic(() => import('./DetailPanel').then((m) => m.DetailPanel), {
   ssr: false,

@@ -116,6 +116,14 @@
       transition-delay: 0s !important;
     }
   }
+  html[data-motion="off"] *,
+  html[data-motion="off"] *::before,
+  html[data-motion="off"] *::after {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
 }
 
 /* § 6.4 grid: desktop ≥1024 = 12 col / 72px margin / 24px gutter;
@@ -147,7 +155,7 @@ canvas[data-game][data-captured="true"]:focus {
   outline-offset: 3px;
 }
 
-/* Task 5.4 — Detail panel rules (§ 4.1, § 9.1, § 9.3) */
+/* Task 5.4 — Detail panel & exhibit card native transition rules (§ 4.1, § 9.1, § 9.3) */
 .detail-panel-wrapper {
   position: relative;
   z-index: 50;
@@ -178,4 +186,64 @@ canvas[data-game][data-captured="true"]:focus {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+  transform-origin: bottom center;
+}
+
+.detail-panel-wrapper.closed .detail-panel,
+.detail-panel-wrapper.exiting .detail-panel {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@media (min-width: 1024px) {
+  .detail-panel {
+    transform-origin: right center;
+  }
+  .detail-panel-wrapper.closed .detail-panel,
+  .detail-panel-wrapper.exiting .detail-panel {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+.detail-panel-wrapper.open .detail-panel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (min-width: 1024px) {
+  .detail-panel-wrapper.open .detail-panel {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.exhibit-card-animated {
+  transition: opacity 240ms ease-out, transform 240ms ease-out;
+}
+
+.exhibit-card-animated.exiting {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.exhibit-card-animated.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-panel,
+  .exhibit-card-animated {
+    transform: none !important;
+    transition-duration: 0s !important;
+  }
+}
+
+html[data-motion="off"] .detail-panel,
+html[data-motion="off"] .exhibit-card-animated {
+  transform: none !important;
+  transition-duration: 0s !important;
 }

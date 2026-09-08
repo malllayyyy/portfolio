@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { useOpenPanel, setPanel } from '@/lib/store';
 import { projectBySlug } from '@/content/projects';
 import { ROUTES } from '@/content/routes';
 import { getMotion, subscribeMotion } from '@/lib/motion-pref';
+import type { Project } from '@/content/types';
 
 export function DetailPanel() {
   const openSlug = useOpenPanel();
@@ -16,6 +16,7 @@ export function DetailPanel() {
   const panelBodyRef = useRef<HTMLDivElement | null>(null);
   const prevOpenSlug = useRef<string | null>(null);
   const [isExited, setIsExited] = useState<boolean>(!openSlug);
+  const [isExiting, setIsExiting] = useState<boolean>(false);
   const [reparentedSlug, setReparentedSlug] = useState<string | null>(null);
 
   // Motion preference tracking
@@ -38,15 +39,84 @@ export function DetailPanel() {
     }
   }, []);
 
-  const project = openSlug ? projectBySlug(openSlug) : null;
+  const project = openSlug ? (projectBySlug(openSlug) ?? null) : null;
+  const [displayedProject, setDisplayedProject] = useState<Project | null>(project);
+
+  useEffect(() => {
+    if (project) {
+      setDisplayedProject(project);
+    }
+  }, [project]);
 
   // Sync reparented slug and exited status when openSlug changes
   useEffect(() => {
     if (openSlug && project) {
       setIsExited(false);
+      setIsExiting(false);
       setReparentedSlug(openSlug);
+    } else if (!openSlug && prevOpenSlug.current) {
+      if (getMotion() === 'off') {
+        setIsExited(true);
+        setIsExiting(false);
+        setReparentedSlug(null);
+      } else {
+        setIsExiting(true);
+      }
     }
   }, [openSlug, project]);
+
+  // Handle exit transition completion
+  useEffect(() => {
+    if (!isExiting) return;
+
+    if (getMotion() === 'off') {
+      setIsExiting(false);
+      setIsExited(true);
+      setReparentedSlug(null);
+      return;
+    }
+
+    let timer: NodeJS.Timeout | null = null;
+    const panelEl = panelRef.current;
+
+    const finishExit = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (panelEl) {
+        panelEl.removeEventListener('transitionend', handleTransitionEnd);
+      }
+      setIsExiting(false);
+      setIsExited(true);
+      setReparentedSlug(null);
+    };
+
+    const handleTransitionEnd = (e: TransitionEvent) => {
+      if (
+        e.target === panelEl &&
+        (e.propertyName === 'opacity' || e.propertyName === 'transform')
+      ) {
+        finishExit();
+      }
+    };
+
+    if (panelEl) {
+      panelEl.addEventListener('transitionend', handleTransitionEnd);
+    }
+
+    timer = setTimeout(finishExit, 320);
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (panelEl) {
+        panelEl.removeEventListener('transitionend', handleTransitionEnd);
+      }
+    };
+  }, [isExiting]);
 
   // DOM Reparenting: move project article from <main> to panel while open, restore on close
   useEffect(() => {
@@ -221,64 +291,55 @@ export function DetailPanel() {
   };
 
   const isVisible = !!openSlug && !!project;
-  const wrapperClass = isVisible ? 'open' : isExited ? 'closed' : 'exiting';
+  const wrapperClass = isVisible ? 'open' : isExiting ? 'exiting' : 'closed';
+  const activeProject = project ?? displayedProject;
+  const shouldRenderPanel = !isExited && activeProject;
 
   return (
     <div className={`detail-panel-wrapper ${wrapperClass}`}>
-      <AnimatePresence
-        onExitComplete={() => {
-          setIsExited(true);
-          setReparentedSlug(null);
-        }}
-      >
-        {isVisible && project && (
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`panel-heading-${project.slug}`}
-            onKeyDown={handleKeyDown}
-            initial={prefersReduced ? { opacity: 0 } : { opacity: 0, x: 24 }}
-            animate={prefersReduced ? { opacity: 1 } : { opacity: 1, x: 0 }}
-            exit={prefersReduced ? { opacity: 0 } : { opacity: 0, x: 24 }}
-            transition={prefersReduced ? { duration: 0 } : { duration: 0.3, ease: 'easeOut' }}
-            className="detail-panel fixed inset-x-0 bottom-0 z-50 flex h-[92vh] w-full flex-col border-t border-hairline bg-[#10151C] p-6 text-light overflow-y-auto overscroll-contain lg:inset-y-0 lg:left-auto lg:right-0 lg:top-0 lg:h-screen lg:w-[calc(100vw*5/12)] lg:min-w-[420px] lg:border-t-0 lg:border-l lg:p-8 lg:rounded-none"
-            data-state={isVisible ? 'open' : 'closed'}
-          >
-            {/* Mobile drag handle */}
-            <div
-              className="mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-[#1B2430] lg:hidden"
-              aria-hidden="true"
-            />
+      {shouldRenderPanel && (
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`panel-heading-${activeProject.slug}`}
+          onKeyDown={handleKeyDown}
+          className="detail-panel fixed inset-x-0 bottom-0 z-50 flex h-[92vh] w-full flex-col border-t border-hairline bg-[#10151C] p-6 text-light overflow-y-auto overscroll-contain lg:inset-y-0 lg:left-auto lg:right-0 lg:top-0 lg:h-screen lg:w-[calc(100vw*5/12)] lg:min-w-[420px] lg:border-t-0 lg:border-l lg:p-8 lg:rounded-none"
+          data-state={isVisible ? 'open' : 'closed'}
+        >
+          {/* Mobile drag handle */}
+          <div
+            className="mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-[#1B2430] lg:hidden"
+            aria-hidden="true"
+          />
 
-            {/* Panel Top Control Bar */}
-            <div className="mb-6 flex items-center justify-between border-b border-hairline pb-4 shrink-0">
-              <h2
-                id={`panel-heading-${project.slug}`}
-                ref={headingRef}
-                tabIndex={-1}
-                className="font-display text-t-lg font-semibold text-light outline-none"
-              >
-                {project.title}
-              </h2>
-              <button
-                type="button"
-                onClick={handleClose}
-                aria-label="Close detail panel"
-                className="flex items-center gap-2 rounded border border-hairline bg-[#0E1116] px-3 py-1.5 font-mono text-t-xs text-muted hover:border-light hover:text-light transition-colors focus-visible:outline-2 focus-visible:outline-[#8FD3FF] focus-visible:outline-offset-3"
-              >
-                <span className="hidden sm:inline text-muted/80">Esc</span>
-                <span aria-hidden="true" className="text-t-sm font-bold">
-                  ✕
-                </span>
-              </button>
-            </div>
+          {/* Panel Top Control Bar */}
+          <div className="mb-6 flex items-center justify-between border-b border-hairline pb-4 shrink-0">
+            <h2
+              id={`panel-heading-${activeProject.slug}`}
+              ref={headingRef}
+              tabIndex={-1}
+              className="font-display text-t-lg font-semibold text-light outline-none"
+            >
+              {activeProject.title}
+            </h2>
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close detail panel"
+              className="flex items-center gap-2 rounded border border-hairline bg-[#0E1116] px-3 py-1.5 font-mono text-t-xs text-muted hover:border-light hover:text-light transition-colors focus-visible:outline-2 focus-visible:outline-[#8FD3FF] focus-visible:outline-offset-3"
+            >
+              <span className="hidden sm:inline text-muted/80">Esc</span>
+              <span aria-hidden="true" className="text-t-sm font-bold">
+                ✕
+              </span>
+            </button>
+          </div>
 
-            {/* Panel Body: Portaled ProjectArticle */}
-            <div ref={panelBodyRef} className="flex-1" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Panel Body: Portaled ProjectArticle */}
+          <div ref={panelBodyRef} className="flex-1" />
+        </div>
+      )}
     </div>
   );
 }

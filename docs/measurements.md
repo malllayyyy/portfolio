@@ -244,3 +244,44 @@ To establish honest, verifiable metrics, `scripts/measure-budget.mjs` replaced `
 - Fonts: **28 KB gz each** (measured 20.5 KB Satoshi / 18.0 KB JetBrains Mono)
 
 What changed is that measurement tooling stopped counting legacy polyfills browsers never fetch, and correctly included dynamic overlay chunks that visitors actually download.
+---
+
+## Phase 6 — Motion Removal, Split-Brain Store Resolution & Verification (2026-09-09)
+
+### Motion Removal & Bundle Optimization
+
+- **Browser Network Trace Finding**: A browser network trace revealed that `motion` (~43.5 KB gz) was being fetched at hydration on every visit via `src/components/DeferredOverlays.tsx` despite its `next/dynamic` wrapper. It was therefore never genuinely deferred, causing the full-descent visitor payload to reach 442.1 KB gz and breach the unchanged 430 KB total JS limit.
+- **Native CSS Cutover**: Replaced `motion` with native CSS transitions (`opacity` + 300 ms `translateX`/`translateY` for detail panels, 240 ms for exhibit cards) and hand-rolled unmounting event listeners (`transitionend` + fallback timeout).
+- **Package Audit**: `grep -rn "from 'motion\|from \"motion\|framer-motion" src/` returns zero hits; `motion` is completely removed from `package.json`.
+
+### Honest Measured Budget Results (`scripts/measure-budget.mjs`)
+
+| Budget Metric | Measured | Limit | Status | Headroom |
+|---|---:|---:|---|---:|
+| **Initial Route JS** | **143.3 KB gz** | ≤ 180.0 KB | ok | 36.7 KB |
+| **Deferred 3D Chunk** | **241.1 KB gz** | ≤ 250.0 KB | ok | 8.9 KB |
+| **Full-Descent Visitor Total** | **406.2 KB gz** | ≤ 430.0 KB | ok | **23.8 KB** |
+| **Satoshi Subset Font** | **20.5 KB gz** | ≤ 28.0 KB | ok | 7.5 KB |
+| **JetBrains Mono Font** | **18.0 KB gz** | ≤ 28.0 KB | ok | 10.0 KB |
+
+*Budget measure script exit code: `0` (`node scripts/measure-budget.mjs >/dev/null 2>&1; echo $?` returns 0).*
+
+### Split-Brain Store Defect & Proximity Card Resolution
+
+- **Defect Description**: Prior to this fix, `src/three/Exhibit.tsx` declared its own private copy of `currentExhibitState`, `exhibitListeners`, and reactive store hooks instead of importing from `src/three/exhibit-state.tsx`. `src/app/page.tsx` and `src/components/ActiveExhibitCard.tsx` subscribed to `exhibit-state.tsx`, while 3D `Exhibit` instances in the scene updated `Exhibit.tsx`. Because the 3D proximity updates never reached the DOM subscriber, **the proximity exhibit card had never rendered on this site**.
+- **Fix**: Removed duplicate store declarations from `src/three/Exhibit.tsx` and updated imports to consume `src/three/exhibit-state.tsx`.
+- **Behavioral Evidence (Verified Live on `http://localhost:4321/`)**:
+  - Camera depth `y = −2 m` (scroll 0–1350 px): `ActiveExhibitCard` renders `"deployment-platform Open ⏎ A self-hosted PaaS: give it a git URL, it builds in a throwaway container and serves the result on its own subdomain."`
+  - Camera depth `y = −8 m` (scroll 1500–1950 px): `ActiveExhibitCard` renders `"ProAcademys Open ⏎ A full-stack MERN rewrite of a legacy PHP/Laravel e-learning platform, including the production data migration."`
+  - Between layers (scroll 6400–12000 px, `y ∈ (−15 m, −35 m)`): `ActiveExhibitCard` disappears completely (`cardCount: 0`, `"NONE (out of proximity range)"`).
+  - Camera depth `y = −52 m` (scroll 12800–16000 px): `ActiveExhibitCard` renders `"GameZone Open ⏎ A real-time gaming-cafe POS..."`.
+
+### Verification Suite & Modal Accessibility Findings
+
+- `npx tsc --noEmit`: Clean (0 errors).
+- `npx next build`: Green (17 static routes generated).
+- `npx vitest run src/engine/loop.test.ts src/engine/pixel-quest.test.ts`: 6 passed (3 loop, 3 pixel-quest).
+- **Computed CSS Verification**: On `.detail-panel`, `transition-duration` = `"0.3s, 0.3s"`, `box-shadow` = `"none"`.
+- **Modal Accessibility**: On `/project/gamezone.html`, `.detail-panel` has `role="dialog"`, `aria-modal="true"`; focus lands on `H2#panel-heading-gamezone`; Tab is trapped inside panel; `Esc` key closes panel and returns focus to `BODY`/trigger; all 18 top-level body siblings receive `inert` while open and `inert` is removed from all 18 when closed; closed panel has 0 tab stops.
+- **Reduced Motion**: Under `html[data-motion="off"]` and `@media (prefers-reduced-motion: reduce)`, transform is forced to `none !important` and `transition-duration` to `0s !important` (opacity-only 0 ms transition).
+- **Rapid Sequence**: Executed rapid `open` → `close` → `open` within 50 ms. Panel recovers cleanly to `wrapperClass: "detail-panel-wrapper open"`, mounted, with full reparented `#deployment-platform` article present and non-blank.

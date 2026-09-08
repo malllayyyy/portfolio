@@ -8,8 +8,7 @@ import { PROJECTS } from '@/content/projects';
 /**
  * Binds the active-exhibit external store to the presentational `ExhibitCard`.
  * Renders nothing until the 3D descent reports an exhibit within camera range,
- * so it — and the `motion` dependency it pulls through `ExhibitCard` — is loaded
- * lazily via `DeferredOverlays`, never on the initial route.
+ * so it is loaded lazily via `DeferredOverlays`, never on the initial route.
  */
 export function ActiveExhibitCard() {
   const { activeSlug } = useActiveExhibit();

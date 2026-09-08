@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { getMotion, subscribeMotion } from '@/lib/motion-pref';
+import { useState, useEffect, useRef } from 'react';
+import { getMotion } from '@/lib/motion-pref';
 import type { Project, LayerId, Presentation } from '@/content/types';
 
 export type ExhibitCardProps = {
@@ -84,28 +83,73 @@ export function ExhibitCard({
       derivedSlug === 'pong' ||
       derivedSlug === 'pixel-quest');
 
-  const [isReducedMotion, setIsReducedMotion] = useState(() => getMotion() === 'off');
+  const [shouldRender, setShouldRender] = useState(isVisible);
+  const [isExiting, setIsExiting] = useState(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    setIsReducedMotion(getMotion() === 'off');
-    const unsubscribe = subscribeMotion(() => {
-      setIsReducedMotion(getMotion() === 'off');
-    });
-    return unsubscribe;
-  }, []);
+    if (isVisible) {
+      setShouldRender(true);
+      setIsExiting(false);
+    } else if (shouldRender) {
+      if (getMotion() === 'off') {
+        setShouldRender(false);
+        setIsExiting(false);
+      } else {
+        setIsExiting(true);
+      }
+    }
+  }, [isVisible]);
 
-  const motionInitial = isReducedMotion
-    ? { opacity: 0, y: 0 }
-    : { opacity: 0, y: 8 };
+  useEffect(() => {
+    if (!isExiting) return;
 
-  const motionAnimate = { opacity: 1, y: 0 };
-  const motionExit = isReducedMotion
-    ? { opacity: 0, y: 0 }
-    : { opacity: 0, y: 8 };
+    if (getMotion() === 'off') {
+      setIsExiting(false);
+      setShouldRender(false);
+      return;
+    }
 
-  const motionTransition = isReducedMotion
-    ? { duration: 0 }
-    : { duration: 0.24, ease: 'easeOut' as const };
+    let timer: NodeJS.Timeout | null = null;
+    const cardEl = cardRef.current;
+
+    const finishExit = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (cardEl) {
+        cardEl.removeEventListener('transitionend', handleTransitionEnd);
+      }
+      setIsExiting(false);
+      setShouldRender(false);
+    };
+
+    const handleTransitionEnd = (e: TransitionEvent) => {
+      if (
+        e.target === cardEl &&
+        (e.propertyName === 'opacity' || e.propertyName === 'transform')
+      ) {
+        finishExit();
+      }
+    };
+
+    if (cardEl) {
+      cardEl.addEventListener('transitionend', handleTransitionEnd);
+    }
+
+    timer = setTimeout(finishExit, 260);
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (cardEl) {
+        cardEl.removeEventListener('transitionend', handleTransitionEnd);
+      }
+    };
+  }, [isExiting]);
 
   const accentClass =
     derivedLayer === 'device'
@@ -122,58 +166,55 @@ export function ExhibitCard({
     }
   };
 
+  if (!shouldRender) return null;
+
+  const cardStateClass = isVisible && !isExiting ? 'open' : 'exiting';
+
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={motionInitial}
-          animate={motionAnimate}
-          exit={motionExit}
-          transition={motionTransition}
-          className={
-            className ??
-            'fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-80 max-w-[calc(100vw-32px)]'
-          }
-        >
-          <div
-            onClick={handleClick}
-            className="group relative bg-strata border border-hairline rounded p-4 text-light flex flex-col gap-3 cursor-pointer"
+    <div
+      ref={cardRef}
+      className={`${
+        className ??
+        'fixed right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-80 max-w-[calc(100vw-32px)]'
+      } exhibit-card-animated ${cardStateClass}`}
+    >
+      <div
+        onClick={handleClick}
+        className="group relative bg-strata border border-hairline rounded p-4 text-light flex flex-col gap-3 cursor-pointer hover:border-muted transition-colors duration-120"
+      >
+        {/* Header row: title and Open affordance */}
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="font-display text-t-base font-semibold text-light leading-snug">
+            {derivedTitle}
+          </h3>
+          <button
+            type="button"
+            tabIndex={tabIndex}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
+            className={`font-mono text-t-xs font-medium ${accentClass} group-hover:underline flex-shrink-0 cursor-pointer outline-none`}
+            aria-label={`Open ${derivedTitle}`}
           >
-            {/* Header row: title and Open affordance */}
-            <div className="flex items-start justify-between gap-4">
-              <h3 className="font-display text-t-base font-semibold text-light leading-snug">
-                {derivedTitle}
-              </h3>
-              <button
-                type="button"
-                tabIndex={tabIndex}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClick();
-                }}
-                className={`font-mono text-t-xs font-medium ${accentClass} group-hover:underline flex-shrink-0 cursor-pointer outline-none`}
-                aria-label={`Open ${derivedTitle}`}
-              >
-                Open ⏎
-              </button>
-            </div>
+            Open ⏎
+          </button>
+        </div>
 
-            {/* One-line thesis */}
-            {derivedThesis && (
-              <p className="font-display text-t-sm text-muted leading-normal">
-                {derivedThesis}
-              </p>
-            )}
+        {/* One-line thesis */}
+        {derivedThesis && (
+          <p className="font-display text-t-sm text-muted leading-normal">
+            {derivedThesis}
+          </p>
+        )}
 
-            {/* Accessibility disclosure for Engine cards (§ 7 row 15) */}
-            {isEngineCard && (
-              <p className="font-mono text-t-xs text-muted border-t border-hairline pt-2 mt-1">
-                Playing this starts an animation
-              </p>
-            )}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {/* Accessibility disclosure for Engine cards (§ 7 row 15) */}
+        {isEngineCard && (
+          <p className="font-mono text-t-xs text-muted border-t border-hairline pt-2 mt-1">
+            Playing this starts an animation
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
