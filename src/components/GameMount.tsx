@@ -1,3 +1,5 @@
+'use client';
+import { useEffect } from 'react';
 import { GameTrigger } from './GameTrigger';
 
 type GameMountProps = {
@@ -12,6 +14,21 @@ export function GameMount({ game }: GameMountProps) {
       : 'Play Pixel Quest — WASD / Arrows to move, E to talk. Enter to start.';
 
   const containerId = `game-mount-${game}`;
+
+  useEffect(() => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const onWheel = (e: WheelEvent) => {
+      const canvas = document.getElementById(`${containerId}-canvas`);
+      if (canvas?.getAttribute('data-captured') === 'true') {
+        e.preventDefault();
+      }
+    };
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', onWheel);
+    };
+  }, [containerId]);
 
   return (
     <div

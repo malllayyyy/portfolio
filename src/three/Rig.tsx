@@ -7,9 +7,10 @@ import { CatmullRomCurve3, Vector3 } from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import { depth } from './depth';
+import { depth, tOfDepth } from './depth';
 import { getMotion, subscribeMotion } from '../lib/motion-pref';
 import { setScrollT } from '../lib/store';
+import { ROUTES } from '../content/routes';
 declare global {
   interface Window {
     ScrollTrigger?: typeof ScrollTrigger;
@@ -62,12 +63,28 @@ export function Rig() {
   const { camera, invalidate } = useThree();
   const proxyRef = useRef({ t: 0 });
   const isMotionOnRef = useRef<boolean>(true);
-
+  const hasInitializedRef = useRef<boolean>(false);
   useEffect(() => {
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
 
+    if (!hasInitializedRef.current && typeof window !== 'undefined') {
+      hasInitializedRef.current = true;
+      const path = window.location.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+      const route = ROUTES.find((r) => r.path === path);
+      let targetDepth: number | null = route ? route.depth : null;
+      if (path === '/about' || path === '/resume') targetDepth = -300;
+
+      if (targetDepth !== null && targetDepth !== 6) {
+        const targetT = tOfDepth(targetDepth);
+        const doc = document.documentElement;
+        const S = Math.max(0, doc.scrollHeight - window.innerHeight);
+        if (S > 0) {
+          window.scrollTo(0, targetT * S);
+        }
+      }
+    }
     gsap.registerPlugin(ScrollTrigger);
     if (typeof window !== 'undefined') {
       window.ScrollTrigger = ScrollTrigger;
@@ -93,15 +110,29 @@ export function Rig() {
         tween.kill();
         tween = null;
       }
+      const path = typeof window !== 'undefined' ? window.location.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/' : '/';
+      const route = ROUTES.find((r) => r.path === path);
+      let targetDepth: number | null = route ? route.depth : null;
+      if (path === '/about' || path === '/resume') targetDepth = -300;
+
+      if (targetDepth !== null && targetDepth !== 6 && typeof window !== 'undefined' && window.scrollY === 0) {
+        const targetT = tOfDepth(targetDepth);
+        const doc = document.documentElement;
+        const S = Math.max(0, doc.scrollHeight - window.innerHeight);
+        if (S > 0) {
+          window.scrollTo(0, targetT * S);
+        }
+      }
 
       const initialT = getT();
       proxyRef.current.t = initialT;
-
       if (isMotionOn) {
         lenis = new Lenis({
           lerp: 0.09,
           wheelMultiplier: 1,
         });
+
+        lenis.scrollTo(window.scrollY, { immediate: true });
 
         lenis.on('scroll', () => {
           ScrollTrigger.update();
@@ -113,6 +144,9 @@ export function Rig() {
         };
         gsap.ticker.add(tickerCb);
 
+        ScrollTrigger.update();
+
+        proxyRef.current.t = 0;
         tween = gsap.to(proxyRef.current, {
           t: 1,
           ease: 'none',
@@ -126,6 +160,12 @@ export function Rig() {
             },
           },
         });
+
+        if (tween.scrollTrigger) {
+          tween.scrollTrigger.scroll(window.scrollY);
+        }
+        tween.progress(initialT);
+        proxyRef.current.t = initialT;
       } else {
         invalidate();
       }
@@ -134,6 +174,9 @@ export function Rig() {
     setupMotion();
 
     const handleScroll = () => {
+      if (lenis) {
+        lenis.scrollTo(window.scrollY, { immediate: true });
+      }
       invalidate();
     };
 

@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from 'react';
 import { detectTier, type Tier } from './tier';
 import { subscribeMotion } from './motion-pref';
+import { ROUTES } from '../content/routes';
+import { tOfDepth } from '../three/depth';
 
 declare global {
   interface Window {
@@ -60,9 +62,45 @@ function updateState(partial: Partial<StoreState>): void {
 
 function syncClientState(): void {
   if (typeof window === 'undefined') return;
-  const nextT = computeT();
+  const path = window.location.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+  const route = ROUTES.find((r) => r.path === path);
+  const initialPanel = route?.openPanel ?? null;
   const nextTier = detectTier();
-  updateState({ t: nextT, tier: nextTier });
+
+  if (nextTier === 'low') {
+    if (path !== '/') {
+      let anchorId: string | null = null;
+      if (route?.openPanel) {
+        anchorId = route.openPanel;
+      } else if (route?.path.startsWith('/layer/')) {
+        anchorId = route.path.replace('/layer/', '');
+      } else if (route?.path === '/about' || route?.path === '/resume') {
+        anchorId = 'bedrock';
+      }
+      if (anchorId) {
+        const el = document.getElementById(anchorId);
+        if (el) {
+          el.scrollIntoView();
+        }
+      }
+    }
+  } else {
+    let targetDepth: number | null = route ? route.depth : null;
+    if (path === '/about' || path === '/resume') targetDepth = -300;
+
+    if (targetDepth !== null && targetDepth !== 6 && window.scrollY === 0) {
+      const targetT = tOfDepth(targetDepth);
+      const scrollHeight = document.documentElement.scrollHeight;
+      const innerHeight = window.innerHeight;
+      const S = Math.max(0, scrollHeight - innerHeight);
+      if (S > 0) {
+        window.scrollTo(0, targetT * S);
+      }
+    }
+  }
+
+  const nextT = computeT();
+  updateState({ t: nextT, tier: nextTier, panel: initialPanel });
 }
 
 function ensureListening(): void {

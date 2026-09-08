@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useLayoutEffect, useEffect } from 'react';
+import { useMemo, useRef, useLayoutEffect, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   BufferGeometry,
@@ -16,7 +16,7 @@ import {
   Uint16BufferAttribute,
   WireframeGeometry,
 } from 'three';
-import type { InstancedMesh } from 'three';
+import type { InstancedMesh, PointLight } from 'three';
 import { INTERIOR } from './Device';
 
 /** Assign an object and all its children to layer channel 2 (INTERIOR) (§ 2.6). */
@@ -135,6 +135,60 @@ export interface EngineProps {
   pixelQuestGameQuad?: React.ReactNode;
 }
 
+/**
+ * CanvasTexture quad mounted on the floor of a play volume.
+ * Wraps the 2D DOM canvas element with a Three.js CanvasTexture.
+ * § 5.2: `texture.needsUpdate = true` is set ONLY when a frame was actually drawn (data-captured === 'true').
+ */
+function GameVolumeQuad({
+  canvasId,
+  fallbackColor = '#10151C',
+}: {
+  canvasId: string;
+  fallbackColor?: string;
+}) {
+  const textureRef = useRef<CanvasTexture | null>(null);
+  const [texture, setTexture] = useState<CanvasTexture | null>(null);
+
+  useFrame((state) => {
+    if (typeof document === 'undefined') return;
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    if (!textureRef.current) {
+      const tex = new CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      textureRef.current = tex;
+      setTexture(tex);
+    } else {
+      const isCaptured = canvas.getAttribute('data-captured') === 'true';
+      if (isCaptured) {
+        textureRef.current.needsUpdate = true;
+        state.invalidate();
+      }
+    }
+  });
+
+  useEffect(() => {
+    return () => {
+      if (textureRef.current) {
+        textureRef.current.dispose();
+        textureRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[15.6, 9.6]} />
+      {texture ? (
+        <meshBasicMaterial map={texture} />
+      ) : (
+        <meshBasicMaterial color={fallbackColor} />
+      )}
+    </mesh>
+  );
+}
 /**
  * § 2.3 Engine — depth y ∈ [−112, −150]
  * - Shared procedural 256² matcap texture (MeshMatcapMaterial)
@@ -324,11 +378,35 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     toInterior(ghostMeshRef.current);
   }, []);
 
-  // Update shared uTime uniform in useFrame (ZERO allocation per frame).
+  const pointLightRef = useRef<PointLight | null>(null);
+
+  // Update shared uTime uniform in useFrame & dim PointLight while playing (ZERO allocation per frame).
   useFrame((state) => {
+    if (typeof document === 'undefined') return;
+
+    if (!pointLightRef.current) {
+      state.scene.traverse((obj) => {
+        if (obj.type === 'PointLight') {
+          pointLightRef.current = obj as PointLight;
+        }
+      });
+    }
+    const pongCanvas = document.getElementById('game-mount-pong-canvas');
+    const questCanvas = document.getElementById('game-mount-pixel-quest-canvas');
+    const isPlaying =
+      pongCanvas?.getAttribute('data-captured') === 'true' ||
+      questCanvas?.getAttribute('data-captured') === 'true';
+    if (isPlaying) {
+      state.invalidate();
+    }
+
+    if (pointLightRef.current) {
+      pointLightRef.current.intensity = isPlaying ? 3.0 : 9.0;
+    }
     if (ghostMaterialRef.current) {
       ghostMaterialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
     }
+
   });
   // Disposal cleanup for imperatively allocated materials, geometries, and textures.
   useEffect(() => {
@@ -372,19 +450,13 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       {/* Phase 5 seams: Game CanvasTexture quads mounted inside volumes at floor level */}
       <group position={[-3, -124 - 0.79, 0]} ref={toInterior}>
         {pongGameQuad ?? (
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[15.6, 9.6]} />
-            <meshBasicMaterial color="#10151C" />
-          </mesh>
+          <GameVolumeQuad canvasId="game-mount-pong-canvas" fallbackColor="#10151C" />
         )}
       </group>
 
       <group position={[3, -134 - 0.79, 0]} ref={toInterior}>
         {pixelQuestGameQuad ?? (
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[15.6, 9.6]} />
-            <meshBasicMaterial color="#10151C" />
-          </mesh>
+          <GameVolumeQuad canvasId="game-mount-pixel-quest-canvas" fallbackColor="#10151C" />
         )}
       </group>
 
