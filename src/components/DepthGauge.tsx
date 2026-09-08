@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useStoreSelector, subscribe, getSnapshot } from '@/lib/store';
-import { depth, tOfDepth } from '@/three/depth';
+import { depth, tOfDepth } from '@/lib/depth';
 import { LAYERS } from '@/content/layers';
 import { getMotion } from '@/lib/motion-pref';
 import type { Layer } from '@/content/types';
