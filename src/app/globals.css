@@ -47,7 +47,7 @@
   src: url("/fonts/Satoshi-Variable.subset.woff2") format("woff2-variations");
   font-weight: 300 900;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 @font-face {
   font-family: "Satoshi Fallback";
