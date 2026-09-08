@@ -29,6 +29,39 @@ const SERVER_SNAPSHOT: StoreState = {
 let currentSnapshot: StoreState = SERVER_SNAPSHOT;
 const listeners = new Set<() => void>();
 let isListening = false;
+let initialTargetT: number | null = null;
+
+function applyInitialScroll(): void {
+  if (typeof window === 'undefined' || initialTargetT === null) return;
+  const scrollHeight = document.documentElement.scrollHeight;
+  const innerHeight = window.innerHeight;
+  const S = Math.max(0, scrollHeight - innerHeight);
+  if (S > 0) {
+    window.scrollTo({ top: initialTargetT * S, behavior: 'instant' });
+  }
+}
+
+let resizeObserver: ResizeObserver | null = null;
+
+function startInitialScrollObserver(): void {
+  if (typeof window === 'undefined' || initialTargetT === null) return;
+  applyInitialScroll();
+
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => {
+      applyInitialScroll();
+    });
+    resizeObserver.observe(document.documentElement);
+
+    setTimeout(() => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+    }, 2000);
+  }
+}
+
 
 function notify(): void {
   listeners.forEach((cb) => cb());
@@ -67,6 +100,8 @@ function syncClientState(): void {
   const initialPanel = route?.openPanel ?? null;
   const nextTier = detectTier();
 
+  currentSnapshot = { t: 0, tier: nextTier, panel: initialPanel };
+
   if (nextTier === 'low') {
     if (path !== '/') {
       let anchorId: string | null = null;
@@ -89,18 +124,15 @@ function syncClientState(): void {
     if (path === '/about' || path === '/resume') targetDepth = -300;
 
     if (targetDepth !== null && targetDepth !== 6 && window.scrollY === 0) {
-      const targetT = tOfDepth(targetDepth);
-      const scrollHeight = document.documentElement.scrollHeight;
-      const innerHeight = window.innerHeight;
-      const S = Math.max(0, scrollHeight - innerHeight);
-      if (S > 0) {
-        window.scrollTo(0, targetT * S);
-      }
+      initialTargetT = tOfDepth(targetDepth);
+      startInitialScrollObserver();
     }
   }
 
-  const nextT = computeT();
-  updateState({ t: nextT, tier: nextTier, panel: initialPanel });
+  queueMicrotask(() => {
+    const nextT = computeT();
+    updateState({ t: nextT });
+  });
 }
 
 function ensureListening(): void {
@@ -116,8 +148,10 @@ function ensureListening(): void {
     }
   });
   syncClientState();
+  if (typeof window !== 'undefined' && initialTargetT !== null && !resizeObserver) {
+    startInitialScrollObserver();
+  }
 }
-
 if (typeof window !== 'undefined') {
   ensureListening();
 }
