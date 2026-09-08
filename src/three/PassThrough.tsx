@@ -11,7 +11,7 @@ import { EXTERIOR, INTERIOR } from './layers/Device';
  * the only way to see in, so there is no competing direct view to disagree with.
  * The prototype sweep starts at −30, so the window opens there.
  */
-const WINDOW_TOP = -36.0;
+const WINDOW_TOP = -30.0;
 const WINDOW_BOTTOM = -40.0;
 
 /**
