@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useLayoutEffect } from 'react';
+import { useMemo, useRef, useLayoutEffect, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   BufferGeometry,
@@ -12,6 +12,7 @@ import {
   MeshMatcapMaterial,
   Object3D,
   ShaderMaterial,
+  Uint16BufferAttribute,
   WireframeGeometry,
 } from 'three';
 import type { InstancedMesh } from 'three';
@@ -32,6 +33,8 @@ attribute vec3 aOffset;
 attribute vec3 aScale;
 attribute vec3 aSpeed;
 
+#include <logdepthbuf_pars_vertex>
+
 void main() {
   vec3 pos = position * aScale;
   float t = uTime * aSpeed.x + aOffset.x;
@@ -41,6 +44,8 @@ void main() {
 
   vec4 worldPosition = instanceMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * modelViewMatrix * worldPosition;
+
+  #include <logdepthbuf_vertex>
 }
 `;
 
@@ -48,7 +53,11 @@ void main() {
 const GHOST_FRAGMENT_SHADER = `
 uniform vec3 uColor;
 
+#include <logdepthbuf_pars_fragment>
+
 void main() {
+  #include <logdepthbuf_fragment>
+
   gl_FragColor = vec4(uColor, 0.85);
 }
 `;
@@ -114,7 +123,7 @@ function createOpenBoxGeometry(w = 16, h = 1.6, d = 10): BufferGeometry {
   geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geo.setAttribute('normal', new Float32BufferAttribute(normals, 3));
   geo.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
-  geo.setIndex(new Float32BufferAttribute(indices, 1));
+  geo.setIndex(new Uint16BufferAttribute(indices, 1));
   return geo;
 }
 
@@ -266,6 +275,7 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
   const ghostGeometry = useMemo(() => {
     const baseGeo = createOpenBoxGeometry(1.6, 1.0, 1.6);
     const wireGeo = new WireframeGeometry(baseGeo);
+    baseGeo.dispose();
     wireGeo.setAttribute(
       'aOffset',
       new Float32BufferAttribute(ghostAttributes.offsets, 3)
@@ -321,6 +331,27 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       ghostMaterialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
     }
   });
+  // Disposal cleanup for imperatively allocated materials, geometries, and textures.
+  useEffect(() => {
+    return () => {
+      matcapTexture?.dispose();
+      matcapMaterial.dispose();
+      wireframeMaterial.dispose();
+      openBoxGeo.dispose();
+      openBoxWireframeGeo.dispose();
+      ghostGeometry.dispose();
+      ghostMaterial.dispose();
+    };
+  }, [
+    matcapTexture,
+    matcapMaterial,
+    wireframeMaterial,
+    openBoxGeo,
+    openBoxWireframeGeo,
+    ghostGeometry,
+    ghostMaterial,
+  ]);
+
 
   return (
     <group>
