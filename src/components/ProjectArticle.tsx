@@ -1,4 +1,5 @@
-import type { Project } from '@/content/types';
+import type { Project, TraceFixture } from '@/content/types';
+import { SWITCHBOARD_TRACE } from '@/content/site';
 import { DecisionList } from './DecisionList';
 import { ScaleStats } from './ScaleStats';
 import { LinkRow } from './LinkRow';
@@ -8,6 +9,34 @@ import { GameZoneDiagram } from '@/diagrams/GameZoneDiagram';
 import { ProtocolTable } from './ProtocolTable';
 import { GameMount } from './GameMount';
 
+const trace: TraceFixture | null = SWITCHBOARD_TRACE;
+
+function TraceStepList({ steps }: { steps: TraceFixture['steps'] }) {
+  return (
+    <div className="mt-8 border-t border-hairline pt-6">
+      <h4 className="font-mono text-t-xs text-muted m-0 uppercase tracking-wider">
+        Trace Replay · {steps.length} Steps
+      </h4>
+      <ol className="mt-4 space-y-3 p-0 m-0 list-none">
+        {steps.map((step, i) => (
+          <li
+            key={i}
+            className="font-mono text-t-xs text-light flex items-center justify-between gap-4 border-b border-hairline/40 pb-2"
+          >
+            <span className="text-accent shrink-0">{step.at}ms</span>
+            <span className="font-semibold text-light">{step.type}</span>
+            <span className="text-muted truncate">
+              {step.from} → {step.to}
+            </span>
+            <span className="text-muted/80 truncate max-w-[200px]">
+              {step.summary}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 export function ProjectArticle({ project: p }: { project: Project }) {
   return (
     <article id={p.slug} data-layer={p.layer} aria-labelledby={`${p.slug}-h`}>
@@ -42,7 +71,12 @@ export function ProjectArticle({ project: p }: { project: Project }) {
         {p.presentation.kind === 'diagram' && p.presentation.component === 'gamezone' && (
           <GameZoneDiagram />
         )}
-        {p.presentation.kind === 'node-field' && <ProtocolTable />}
+        {p.presentation.kind === 'node-field' && (
+          <>
+            <ProtocolTable />
+            {trace && <TraceStepList steps={trace.steps} />}
+          </>
+        )}
         {p.presentation.kind === 'playable' && <GameMount game={p.presentation.game} />}
       </div>
       <p className="mt-12 font-display text-t-base text-muted prose-measure border-l border-hairline pl-6 m-0">
