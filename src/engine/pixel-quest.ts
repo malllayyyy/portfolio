@@ -27,13 +27,8 @@ export function initPixelQuest(
 ): PixelQuestInstance {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    return {
-      start() {},
-      stop() {},
-      destroy() {},
-      setKeys() {},
-      handleInteract() {},
-    };
+    // Fail loudly rather than returning a stub that pretends to work.
+    throw new Error('Pixel Quest: could not acquire a 2D canvas context.');
   }
 
   const WIDTH = 640;
@@ -222,6 +217,9 @@ export function initPixelQuest(
     npcs.forEach((n) => {
       if (checkCollision(playerRectY, n)) collideY = true;
     });
+
+    if (!collideY) player.y = nextY;
+
     let nearNpc: NPC | null = null;
     for (const npc of npcs) {
       const nearRect = {

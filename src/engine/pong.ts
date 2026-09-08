@@ -15,13 +15,10 @@ export function initPong(
 ): PongInstance {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    return {
-      start() {},
-      stop() {},
-      destroy() {},
-      setKeys() {},
-      handleRestart() {},
-    };
+    // Fail loudly. A no-op instance here would let the visitor press Play and
+    // get permanent silence with no explanation; GameMount catches this and
+    // surfaces a real message instead.
+    throw new Error('Pong: could not acquire a 2D canvas context.');
   }
 
   const WIDTH = 640;

@@ -70,7 +70,7 @@ export function GameMount({ game }: GameMountProps) {
           className="p-4 bg-strata"
         >
           <img
-            src="/video/pixel-quest-poster.avif"
+            src="/video/pixel-quest-poster.png"
             alt="Pixel Quest gameplay poster frame"
             className="w-full aspect-[16/10] bg-field border border-hairline rounded block object-cover"
           />

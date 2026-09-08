@@ -1,3 +1,5 @@
+import { getMotion } from './motion-pref';
+
 export type Tier = 'low' | 'mid' | 'high';
 
 export function webglSupported(): boolean {
@@ -23,7 +25,8 @@ export function detectTier(): Tier {
     deviceMemory?: number;
     connection?: { saveData?: boolean };
   };
-  const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Single source of truth for this preference — see src/lib/motion-pref.ts.
+  const prefersReducedMotion = getMotion() === 'off';
 
   let score = 0;
   const cores = nav.hardwareConcurrency ?? 2;
