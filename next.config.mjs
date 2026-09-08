@@ -4,6 +4,6 @@ export default {
   images: { unoptimized: true },
   reactStrictMode: true,
   experimental: {
-    inlineCss: true,
+    inlineCss: false,
   },
 };

@@ -7,3 +7,6 @@ lh-*.json
 tmp/
 .vercel
 assets/raw/
+
+# Lighthouse scratch output
+lh-*.json

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import { useScrollT } from '@/lib/store';
+import { useStoreSelector, subscribe, getSnapshot } from '@/lib/store';
 import { depth, tOfDepth } from '@/three/depth';
 import { LAYERS } from '@/content/layers';
 import { getMotion } from '@/lib/motion-pref';
@@ -29,23 +29,32 @@ function formatDepthReadout(y: number): string {
 }
 
 export function DepthGauge() {
-  const t = useScrollT();
-  const y = depth(t);
-  const currentMeter = Math.round(y);
-  const activeLayer = getLayer(y);
+
+  // Only re-render React component when active layer changes (0, -40, -120, -260 m)
+  const activeLayerId = useStoreSelector((s) => getLayer(depth(s.t)).id);
+  const activeLayer = STOPS.find((l) => l.id === activeLayerId) ?? STOPS[0];
 
   const readoutRef = useRef<HTMLSpanElement>(null);
-  const lastMeterRef = useRef<number | null>(null);
 
+  // Imperative DOM update for readout when integer meter changes
   useEffect(() => {
-    if (lastMeterRef.current !== currentMeter) {
-      lastMeterRef.current = currentMeter;
-      if (readoutRef.current) {
-        readoutRef.current.textContent = formatDepthReadout(y);
-      }
+    let lastMeter = Math.round(depth(getSnapshot().t));
+    if (readoutRef.current) {
+      readoutRef.current.textContent = formatDepthReadout(depth(getSnapshot().t));
     }
-  }, [currentMeter, y]);
+    return subscribe(() => {
+      const y = depth(getSnapshot().t);
+      const meter = Math.round(y);
+      if (meter !== lastMeter) {
+        lastMeter = meter;
+        if (readoutRef.current) {
+          readoutRef.current.textContent = formatDepthReadout(y);
+        }
+      }
+    });
+  }, []);
 
+  // Keyboard navigation registered once
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -79,6 +88,7 @@ export function DepthGauge() {
         });
       };
 
+      const currentY = depth(getSnapshot().t);
       const scrollToY = (targetY: number) => {
         const clampedY = Math.max(-300, Math.min(0, targetY));
         const targetT = tOfDepth(clampedY);
@@ -112,18 +122,18 @@ export function DepthGauge() {
           break;
         case 'ArrowUp':
           e.preventDefault();
-          scrollToY(y + 10);
+          scrollToY(currentY + 10);
           break;
         case 'ArrowDown':
           e.preventDefault();
-          scrollToY(y - 10);
+          scrollToY(currentY - 10);
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [y]);
+  }, []);
 
   const handleClickDatum = (datumY: number) => {
     const scrollHeight = document.documentElement.scrollHeight;
@@ -137,6 +147,8 @@ export function DepthGauge() {
     });
   };
 
+  const initialY = depth(getSnapshot().t);
+
   return (
     <nav
       aria-label="Depth navigation"
@@ -146,7 +158,7 @@ export function DepthGauge() {
         aria-hidden="true"
         className="font-mono text-t-xs text-muted select-none whitespace-nowrap [writing-mode:vertical-lr] rotate-180 flex items-center justify-center tracking-wider"
       >
-        <span ref={readoutRef}>{formatDepthReadout(y)}</span>
+        <span ref={readoutRef}>{formatDepthReadout(initialY)}</span>
       </div>
 
       <div className="relative flex flex-col items-center gap-4 py-2">
