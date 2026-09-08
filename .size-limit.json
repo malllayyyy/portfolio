@@ -1,0 +1,46 @@
+[
+  {
+    "name": "initial route",
+    "path": [
+      "out/_next/static/chunks/1mh6a-*.js",
+      "out/_next/static/chunks/27n164-*.js",
+      "out/_next/static/chunks/0lcg6y-*.js",
+      "out/_next/static/chunks/0cz1d0-*.js",
+      "out/_next/static/chunks/0eo1cd-*.js"
+    ],
+    "limit": "180 KB",
+    "gzip": true
+  },
+  {
+    "name": "3D chunk",
+    "path": "out/_next/static/chunks/33rqucm*.js",
+    "limit": "250 KB",
+    "gzip": true
+  },
+  {
+    "name": "total JS",
+    "path": [
+      "out/_next/static/chunks/1mh6a-*.js",
+      "out/_next/static/chunks/27n164-*.js",
+      "out/_next/static/chunks/0lcg6y-*.js",
+      "out/_next/static/chunks/0cz1d0-*.js",
+      "out/_next/static/chunks/0eo1cd-*.js",
+      "out/_next/static/chunks/33rqucm*.js",
+      "out/_next/static/chunks/1o03d0*.js"
+    ],
+    "limit": "430 KB",
+    "gzip": true
+  },
+  {
+    "name": "Satoshi font",
+    "path": "public/fonts/Satoshi-Variable.subset.woff2",
+    "limit": "28 KB",
+    "gzip": true
+  },
+  {
+    "name": "JetBrains Mono font",
+    "path": "public/fonts/JetBrainsMono-Variable.subset.woff2",
+    "limit": "28 KB",
+    "gzip": true
+  }
+]

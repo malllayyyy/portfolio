@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "npx serve out",
     "subset-fonts": "bash scripts/subset-fonts.sh",
-    "test": "vitest run"
+    "test": "vitest run",
+    "size": "size-limit"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@size-limit/file": "^13.0.3",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
@@ -30,6 +32,7 @@
     "@types/three": "^0.185.0",
     "puppeteer-core": "^25.10.0",
     "sharp": "^0.35.4",
+    "size-limit": "^13.0.3",
     "tailwindcss": "4.3.3",
     "typescript": "5.7.2",
     "vitest": "2.1.1"
