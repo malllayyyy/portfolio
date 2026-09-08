@@ -9,6 +9,7 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   LineBasicMaterial,
+  MeshBasicMaterial,
   MeshMatcapMaterial,
   Object3D,
   ShaderMaterial,
@@ -28,13 +29,14 @@ function toInterior(obj: Object3D | null) {
 
 /** Vertex shader for 40 instanced wireframe collider ghosts. */
 const GHOST_VERTEX_SHADER = `
-uniform float uTime;
+#include <common>
+#include <logdepthbuf_pars_vertex>
+
 attribute vec3 aOffset;
 attribute vec3 aScale;
 attribute vec3 aSpeed;
 
-#include <logdepthbuf_pars_vertex>
-
+uniform float uTime;
 void main() {
   vec3 pos = position * aScale;
   float t = uTime * aSpeed.x + aOffset.x;
@@ -43,8 +45,7 @@ void main() {
   pos.z += sin(uTime * aSpeed.z + aOffset.z) * 1.5;
 
   vec4 worldPosition = instanceMatrix * vec4(pos, 1.0);
-  gl_Position = projectionMatrix * modelViewMatrix * worldPosition;
-
+  gl_Position = projectionMatrix * viewMatrix * worldPosition;
   #include <logdepthbuf_vertex>
 }
 `;
@@ -167,7 +168,6 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     }
     return new CanvasTexture(canvas);
   }, []);
-
   const matcapMaterial = useMemo(() => {
     return new MeshMatcapMaterial({
       matcap: matcapTexture,
@@ -176,8 +176,9 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
   }, [matcapTexture]);
 
   const wireframeMaterial = useMemo(() => {
-    return new LineBasicMaterial({
+    return new MeshBasicMaterial({
       color: '#FF5F56',
+      wireframe: true,
     });
   }, []);
 
@@ -201,10 +202,6 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       ...apex, ...b3,
       ...apex, ...b4,
       // Base rectangle
-      ...b1, ...b2,
-      ...b2, ...b3,
-      ...b3, ...b4,
-      ...b4, ...b1,
       // Intermediate plane rectangle
       ...m1, ...m2,
       ...m2, ...m3,
@@ -213,6 +210,12 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     ];
     return new Float32Array(pos);
   }, []);
+
+  const frustumGeo = useMemo(() => {
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(frustumPositions, 3));
+    return geo;
+  }, [frustumPositions]);
 
   // 2. Play volumes (open-topped boxes 16 x 10 m).
   const openBoxGeo = useMemo(() => createOpenBoxGeometry(16, 1.6, 10), []);
@@ -247,7 +250,6 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     }
   }, []);
 
-  // 3. 40 Instanced collider ghosts shader & attributes (1 draw call).
   const ghostAttributes = useMemo(() => {
     const offsets = new Float32Array(40 * 3);
     const scales = new Float32Array(40 * 3);
@@ -274,23 +276,20 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
 
   const ghostGeometry = useMemo(() => {
     const baseGeo = createOpenBoxGeometry(1.6, 1.0, 1.6);
-    const wireGeo = new WireframeGeometry(baseGeo);
-    baseGeo.dispose();
-    wireGeo.setAttribute(
+    baseGeo.setAttribute(
       'aOffset',
       new Float32BufferAttribute(ghostAttributes.offsets, 3)
     );
-    wireGeo.setAttribute(
+    baseGeo.setAttribute(
       'aScale',
       new Float32BufferAttribute(ghostAttributes.scales, 3)
     );
-    wireGeo.setAttribute(
+    baseGeo.setAttribute(
       'aSpeed',
       new Float32BufferAttribute(ghostAttributes.speeds, 3)
     );
-    return wireGeo;
+    return baseGeo;
   }, [ghostAttributes]);
-
   const ghostMaterial = useMemo(() => {
     const mat = new ShaderMaterial({
       uniforms: {
@@ -351,22 +350,15 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     ghostGeometry,
     ghostMaterial,
   ]);
-
-
   return (
     <group>
-      {/* 1. Camera frustum wireframe (apex-up at y = -150) */}
-      <lineSegments ref={toInterior}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[frustumPositions, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial color="#FF5F56" />
-      </lineSegments>
 
-      {/* 2. Play volume matcap bodies (2 instanced open-topped boxes) */}
+      {/* 1. Camera frustum wireframe (apex-up at y = -150) */}
+      <lineSegments
+        ref={toInterior}
+        geometry={frustumGeo}
+        material={wireframeMaterial}
+      />
       <instancedMesh
         ref={playVolumeMatcapRef}
         args={[openBoxGeo, matcapMaterial, 2]}
@@ -375,9 +367,8 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       {/* Play volume wireframe overlays (2 instanced wireframes) */}
       <instancedMesh
         ref={playVolumeWireframeRef}
-        args={[openBoxWireframeGeo, wireframeMaterial, 2]}
+        args={[openBoxGeo, wireframeMaterial, 2]}
       />
-
       {/* Phase 5 seams: Game CanvasTexture quads mounted inside volumes at floor level */}
       <group position={[-3, -124 - 0.79, 0]} ref={toInterior}>
         {pongGameQuad ?? (

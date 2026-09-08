@@ -48,8 +48,8 @@ function getFogAtY(y: number, outColor: Color): number {
 
 function getDirectionalIntensityAtY(y: number): number {
   if (y >= 0) return 0.9;
-  if (y >= -150) return 0.9 + (y / -150) * (0.15 - 0.9);
-  if (y >= -260) return 0.15 + ((y + 150) / -110) * (0 - 0.15);
+  if (y >= -120) return 0.9 + (y / -120) * (0.45 - 0.9);
+  if (y >= -260) return 0.45 + ((y + 120) / -140) * (0 - 0.45);
   return 0;
 }
 
@@ -137,9 +137,9 @@ export function Fog() {
           }
         }}
         position={[0, -3, 0]}
-        distance={42}
+        distance={55}
         decay={2}
-        intensity={6.0}
+        intensity={9.0}
       />
       <ambientLight
         ref={(node) => {
@@ -148,7 +148,7 @@ export function Fog() {
             ambientLightRef.current = node;
           }
         }}
-        intensity={0.06}
+        intensity={0.08}
       />
     </>
   );

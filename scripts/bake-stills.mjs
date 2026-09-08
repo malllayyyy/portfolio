@@ -62,7 +62,6 @@ async function main() {
     defaultViewport: { width: 1600, height: 1000, deviceScaleFactor: 1 },
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-
   try {
     const page = await browser.newPage();
 
@@ -99,6 +98,7 @@ async function main() {
       await page.evaluate((t) => {
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         window.scrollTo(0, t * maxScroll);
+        window.dispatchEvent(new Event('scroll'));
       }, targetT);
 
       // Wait >= 950 ms and poll for camera convergence (GSAP scrub lag ~600 ms)
@@ -115,14 +115,11 @@ async function main() {
         }
       }
 
-      // Capture canvas using browser element screenshot mechanism
-      const canvasEl = await page.$('canvas');
-      if (!canvasEl) {
-        throw new Error('Canvas element not found at capture time');
-      }
+      // Wait for rAF so WebGL renders the converged frame
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
-      const pngBuf = await canvasEl.screenshot({ type: 'png' });
-
+      // Capture composited page viewport screenshot
+      const pngBuf = await page.screenshot({ type: 'png' });
       // Encode to AVIF, tuning quality down if needed to respect <= 71680 B budget
       let quality = 78;
       let avifBuf = await sharp(pngBuf).avif({ quality, effort: 6 }).toBuffer();
