@@ -35,7 +35,7 @@ function SceneEnvironment() {
 
 /**
  * The single dynamic-import entry point for all 3D. Every import of `three`,
- * `@react-three/*`, `gsap` and `lenis` lives in this module's subtree and
+ * `@react-three/fiber`, and `lenis` lives in this module's subtree and
  * nowhere else, so the whole 3D chunk stays behind one `import()` and low tier
  * never fetches a byte of it (§ 8.3).
  */
