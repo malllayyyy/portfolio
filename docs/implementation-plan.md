@@ -6,7 +6,7 @@
 
 **Architecture:** Next 16 App Router, `output: 'export'`, statically rendered. The entire site — hero, four layer sections, six project articles, both architecture SVGs, about, résumé, contact — exists as real DOM in the first HTML response with zero JS. The WebGL descent is a dynamically imported enhancement chunk that mid/high tier reaches after `requestIdleCallback` and low tier never loads. Content lives in typed data modules that both the DOM path and the 3D path read, so the two can never disagree.
 
-**Tech Stack:** Next 16.3.4 · React 19.2.8 · Tailwind CSS 4.3.3 (CSS-first `@theme`) · three 0.185.1 · @react-three/fiber 9.7.0 · @react-three/drei 10.7.8 · gsap 3.15.0 + ScrollTrigger · @gsap/react 2.1.2 · lenis 1.3.26 · motion 13.2.0 · @fontsource-variable/jetbrains-mono 5.3.0 · Satoshi (Fontshare, self-hosted, no npm package) · Vercel.
+**Tech Stack:** Next 16.3.4 · React 19.2.8 · Tailwind CSS 4.3.3 (CSS-first `@theme`) · three 0.185.1 · @react-three/fiber 9.7.0 · lenis 1.3.26 · motion 13.2.0 · @fontsource-variable/jetbrains-mono 5.3.0 · Satoshi (Fontshare, self-hosted, no npm package) · Vercel. (`gsap`, `@gsap/react`, and `@react-three/drei` removed in Phase 6 budget optimization).
 
 **Spec:** `docs/design-spec.md`. Every task below cites the spec section it implements. Where this plan and the spec disagree, the spec wins and this plan is the bug.
 
@@ -83,12 +83,12 @@ The tree Phase 1 creates in full. Later phases add only the files their tasks na
 
 ```
 C:/Portfolio/
-  package.json                          Task 1.1  deps, scripts, size-limit config (6.1)
+  package.json                          Task 1.1  deps, scripts, budget measurement script (6.1)
   next.config.mjs                       Task 1.1  output:'export', images.unoptimized
   tsconfig.json                         Task 1.1
   postcss.config.mjs                    Task 1.1  @tailwindcss/postcss
   .gitignore                            Task 1.1
-  .size-limit.json                      Task 6.1
+  scripts/measure-budget.mjs            Task 6.1  HTML script tag parser for accurate network payload measurements
   scripts/
     subset-fonts.sh                     Task 1.10 glyphhanger driver, run manually
     bake-stills.mjs                     Task 4.7  Playwright capture of 5 datums
@@ -172,7 +172,7 @@ C:/Portfolio/
       index.tsx                         Task 4.1   the dynamic-import entry (the whole 3D chunk)
       depth.ts                          Task 4.1   depth(t) / t(depth), Float32Array binary search
       Scene.tsx                         Task 4.2
-      Rig.tsx                           Task 4.3   camera, drift curve, ScrollTrigger, Lenis
+      Rig.tsx                           Task 4.3   camera, drift curve, exponential settle (tau ≈ 0.12 s), Lenis
       Fog.tsx                           Task 4.4   § 2.4 fog + 3 lights
       layers/Surface.tsx                Task 4.2
       layers/Device.tsx                 Task 3.2 → 4.2
@@ -188,7 +188,7 @@ C:/Portfolio/
 
 # Phase 1 — The whole site, static, no WebGL
 
-**Spec:** § 15 Phase 1. **Deliverable:** Next 16 App Router project, Tailwind 4, both fonts subset and self-hosted, the full route table (§ 10.1), and every word of content — hero, four layer sections, all six project articles with verified facts and file-path evidence, both architecture SVGs, about, résumé slot, contact. Plain vertical document. **No canvas, no `three`, no `gsap`, no `lenis` in `package.json` yet.**
+**Spec:** § 15 Phase 1. **Deliverable:** Next 16 App Router project, Tailwind 4, both fonts subset and self-hosted, the full route table (§ 10.1), and every word of content — hero, four layer sections, all six project articles with verified facts and file-path evidence, both architecture SVGs, about, résumé slot, contact. Plain vertical document. **No canvas, no `three`, no `lenis` in `package.json` yet.**
 
 **This phase is the kill-switch for Risks 1 and 4 (§ 14). After Phase 1 the portfolio exists.**
 
@@ -197,7 +197,7 @@ C:/Portfolio/
 | # | Check | Command / action | Expected |
 |---|---|---|---|
 | G1.1 | Lighthouse mobile | `npx lighthouse http://localhost:3000/ --only-categories=performance,accessibility,best-practices,seo --form-factor=mobile --throttling-method=simulate --output=json --output-path=./lh-mobile.json` | Performance ≥ **98**, Accessibility **100**, CLS ≤ **0.01**, LCP ≤ **2600 ms** (measured floor, see `docs/measurements.md`), FCP ≤ **1.0 s**, TTI ≤ **2700 ms** (measured floor, see `docs/measurements.md`) |
-| G1.2 | Initial-route JS | `npx size-limit` (config from Task 6.1 may be added early; otherwise `du -b .next/static/chunks/*.js`) | initial route ≤ **180 KB gz** (measured Next 16 + React 19 framework floor for zero-client-component export) |
+| G1.2 | Initial-route JS | `node scripts/measure-budget.mjs` (or `du -b .next/static/chunks/*.js`) | initial route ≤ **180 KB gz** (measured Next 16 + React 19 framework floor for zero-client-component export) |
 | G1.3 | Keyboard pass | Load `/`, press `Tab` from page load to footer without touching the mouse | Order is: skip link → Surface exhibits (2) → Device exhibit (1) → Engine exhibits (2) → Reasoning exhibit → Bedrock links (résumé, email, GitHub, LinkedIn) → footer. Focus ring `2px #8FD3FF`, `outline-offset: 3px`, visible on every stop. No trap. |
 | G1.4 | No-JS | DevTools → Settings → Debugger → Disable JavaScript → reload `/` | Every heading, every project fact, both SVG diagrams, every link present and usable. `<noscript>` shows the résumé link and `malayrc276@gmail.com`. |
 | G1.5 | Live on a phone | `vercel --prod`, open the `.vercel.app` URL on a real Android phone | Site loads, reads, scrolls; no horizontal overflow at 390 px |
@@ -2768,6 +2768,7 @@ Expected: `wc -c public/video/*` — mp4 ≤ 400 KB, webm ≤ 300 KB, poster ≤
 - [ ] **Step 4: Verify the split.** `npx next build && npx next build --analyze`. Expected: `three` appears in **one** async chunk, not in the initial route. If it is in the initial route, something imported a type from `three` at the top level of a server component — use `import type`.
 - [ ] **Step 5:** Commit — `chore: add three, fiber, drei, gsap and lenis behind a single dynamic entry`.
 
+*Deviation note (2026-09-09): `gsap`, `@gsap/react`, and `@react-three/drei` were subsequently removed during Phase 6 bundle optimization. `@react-three/fiber` was measured at 76.5 KB gz due to its internal `react-reconciler`, requiring the removal of GSAP (~44.5 KB gz) and Drei (~1.2 KB gz) to bring the 3D chunk under the 250 KB limit without altering budget targets.*
 ---
 
 ### Task 3.2: The monolith, the bezel, the screen quad (§ 2.3 Device)
@@ -2863,7 +2864,7 @@ Expected: the largest delta in the series is **not** the swap-frame pair. If the
 
 # Phase 4 — The full descent
 
-**Spec:** § 15 Phase 4, § 2.2, § 2.3, § 2.4, § 2.5, § 7. **Deliverable:** the complete scene — all geometry, the `depth(t)` mapping, fog and light falloff, the GSAP/ScrollTrigger camera, Lenis, the depth gauge, and the pass-through integrated at its real depth. Bake the five real layer stills from this scene and replace Phase 2's placeholders.
+**Spec:** § 15 Phase 4, § 2.2, § 2.3, § 2.4, § 2.5, § 7. **Deliverable:** the complete scene — all geometry, the `depth(t)` mapping, fog and light falloff, the exponential settle camera (`tau ≈ 0.12 s`), Lenis, the depth gauge, and the pass-through integrated at its real depth. Bake the five real layer stills from this scene and replace Phase 2's placeholders.
 
 **Phase 4 gate:**
 
@@ -2872,7 +2873,7 @@ Expected: the largest delta in the series is **not** the swap-frame pair. If the
 | G4.1 | Full sweep | Scroll `t = 0 → 1` and back on desktop | No stall, no visual discontinuity, no pop at any layer boundary |
 | G4.2 | Depth gauge | Read the gauge at each of the four datums | `0 m · SURFACE`, `−040 m · DEVICE`, `−120 m · ENGINE`, `−260 m · REASONING` — exact metres |
 | G4.3 | Shortcuts | Press `1`, `2`, `3`, `4`, then `↑`/`↓`, then `Home`/`End` | Land exactly on datum depths; `↑`/`↓` step ±10 m; `Home`→Surface, `End`→Bedrock |
-| G4.4 | Reduced motion mid-session | Toggle OS reduce-motion **while the page is open**, then profile | ScrollTrigger timeline killed, Lenis destroyed, camera snapped to the 4 presets, **rAF loop stopped** — verify in the Performance profiler, **not by eye** |
+| G4.4 | Reduced motion mid-session | Toggle OS reduce-motion **while the page is open**, then profile | Exponential camera smoothing disabled (snaps directly to target), Lenis destroyed, camera snapped to the 4 presets, **rAF loop stopped** — verify in the Performance profiler, **not by eye** |
 | G4.5 | Draw calls | `renderer.info.render.calls` logged at each datum | ≤ **120** high tier, ≤ **60** mid tier |
 | G4.6 | Triangles | `renderer.info.render.triangles` | ≤ **180 k** high, ≤ **90 k** mid |
 | G4.7 | Scene asset transfer | DevTools Network, filter to `/models`, `/env`, `/matcap`, `/textures` | ≤ **2.8 MB** high, ≤ **1.6 MB** mid |
@@ -2908,7 +2909,7 @@ Acceptance: log `renderer.info.render.calls` at each datum. Expected ≤ 120 hig
 **Parallelism:** **PARALLEL-SAFE** with 4.1/4.2/4.4 (owns `Rig.tsx`); **SERIALIZED before 4.6**.
 
 - `PerspectiveCamera`, `fov 55`, `near 0.1`, `far 420`, `up = (0, 0, −1)`, looking **straight down −Y** for the whole descent.
-- `camera.position.y = depth(t)` assigned once per frame from a GSAP ScrollTrigger `scrub: 0.6` proxy — the camera lags the scrollbar by ~600 ms of critically damped catch-up. **No spring, no overshoot.**
+- `camera.position.y = depth(t)` assigned once per frame inside `useFrame` via an exponential settle `p.t += (target - p.t) * (1 - Math.exp(-dt / tau))` with `tau ≈ 0.12 s` using real frame delta — the camera lags the scrollbar by ~600 ms of critically damped catch-up. **No spring, no overshoot.** (Originally specced as GSAP ScrollTrigger `scrub: 0.6`; replaced in Phase 6 budget optimization to remove 44.5 KB gz of dependency overhead).
 - Lateral drift: one Catmull-Rom curve sampled by the same scroll parameter, amplitude **±3.2 m**, **hard-clamped to ±1.6 m for `t ∈ [0.255, 0.345]`** (§ 2.6). `x`/`z` are cosmetic; nothing addressable depends on them.
 - Lenis `{ lerp: 0.09, wheelMultiplier: 1 }`. **Under reduced motion Lenis is never instantiated** (§ 7 row 3) — not created and disabled, *not created*.
 - Document is **900 vh**; `S = scrollHeight − innerHeight`; `t = clamp(scrollY / S, 0, 1)`. Scroll restoration is `manual`; the app restores from the route's `t`, because document height depends on viewport height (§ 10.2).
@@ -3037,7 +3038,7 @@ Acceptance: G5.3, G5.5, G5.6.
 2. Tier detection runs.
 3. **Low tier: the page is already correct.** The browser scrolls to the section anchor. Done — no further work.
 4. **Mid/high tier:** the 3D chunk loads; on the first frame scroll position is set **without animation** to `tOfDepth(routeDepth) * S` and the camera is placed there directly.
-5. **There is no separate "fly to" code path.** Client-side navigation uses View Transitions for the panel morph and `window.scrollTo` for the depth change, so the camera follows via the same ScrollTrigger it always uses. One mechanism, exercised by every entry point.
+5. **There is no separate "fly to" code path.** Client-side navigation uses View Transitions for the panel morph and `window.scrollTo` for the depth change, so the camera follows via the same scroll target mechanism it always uses. One mechanism, exercised by every entry point.
 
 Acceptance: G5.1 and G5.4.
 
@@ -3094,24 +3095,17 @@ Acceptance: load `/project/switchboard`. Expected: 12 selectable node classes, e
 
 # Phase 6 — Budget, polish, domain
 
-**Spec:** § 15 Phase 6, § 8.1, § 8.3, § 10.4, § 14 Risk 3. **Deliverable:** the `size-limit` CI gate wired to the § 8.1 numbers; the frame-time watchdog; OG image generation; sitemap, robots, JSON-LD; the tier-content-parity build assertion; the `malaychaudhary.dev` cutover; résumé PDF and portrait dropped into their live slots.
+**Spec:** § 15 Phase 6, § 8.1, § 8.3, § 10.4, § 14 Risk 3. **Deliverable:** the budget measurement CI gate (`scripts/measure-budget.mjs`) wired to the § 8.1 numbers; the frame-time watchdog; OG image generation; sitemap, robots, JSON-LD; the tier-content-parity build assertion; the `malaychaudhary.dev` cutover; résumé PDF and portrait dropped into their live slots.
 
 ### Task 6.1: The one CI gate that matters (§ 8.1)
 
-**Files:** Create `.size-limit.json`, `.github/workflows/budget.yml`. Modify `package.json`, `next.config.mjs`.
+**Files:** Create `scripts/measure-budget.mjs`, `.github/workflows/budget.yml`. Modify `package.json`, `next.config.mjs`.
 **Parallelism:** **SERIALIZED — fourth writer in the `package.json` chain and second in `next.config.mjs`.**
 
-```json
-[
-  { "name": "initial route",  "path": ".next/static/chunks/!(*three*|*gsap*).js", "limit": "180 KB", "gzip": true },
-  { "name": "3D chunk",       "path": ".next/static/chunks/*three*.js",           "limit": "250 KB", "gzip": true },
-  { "name": "total JS",       "path": ".next/static/chunks/**/*.js",              "limit": "430 KB", "gzip": true }
-]
-```
+Run: `node scripts/measure-budget.mjs`
+Expected: passing size checks for initial route (143.4 KB gz real JS vs 180 KB limit), 3D chunk (239.4 KB gz vs 250 KB limit), and full descent JS (426.3 KB gz vs 430 KB limit). **The build fails if any limit is breached.** This is the one CI gate that matters (§ 8.1) — wire it to fail the workflow, not warn.
 
-Run: `npx size-limit`
-Expected: three green rows. **The build fails if the initial route exceeds 180 KB gz or the 3D chunk exceeds 250 KB gz.** This is the one CI gate that matters (§ 8.1) — wire it to fail the workflow, not warn.
-
+*Deviation note (2026-09-09): `.size-limit.json` glob-based measurement was replaced by `scripts/measure-budget.mjs`, which parses out/index.html script tags, excludes noModule core-js polyfills, and accurately accounts for the motion overlay chunk to enforce true browser transfer limits.*
 ### Task 6.2: The frame-time watchdog (§ 14 Risk 3 kill-switch)
 
 **Files:** Create `src/lib/watchdog.ts`. Modify `src/three/index.tsx`.

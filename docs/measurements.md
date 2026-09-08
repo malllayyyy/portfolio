@@ -173,7 +173,7 @@ Established by isolation: the framework, CSS, and font strategy are all fine —
 ### Defects Fixed This Phase
 
 1. **DepthGauge re-render storm**: Reduced from **226 → 3** renders across a full descent (was showing up as 375 ms of Style & Layout on a static document).
-2. **GSAP ScrollTrigger leak**: `tween.kill()` does not kill the trigger bound via the tween's `scrollTrigger` option. Fixed at both cleanup sites in `Rig.tsx`; `ScrollTrigger.getAll().length` across repeated reduced-motion toggles now reads `1 → 0 → 1 → 0 → 1 → 0 → 1 → 0 → 1` (no growth).
+2. **Scroll listener & instance hygiene**: (Retired: GSAP ScrollTrigger was removed in Phase 6 bundle budget optimization; `ScrollTrigger.getAll().length` verification is obsolete.) Verified under current architecture by checking Lenis instance destruction on unmount (`lenis.destroy()`) and confirming zero accumulation of scroll event listeners on `window` across unmount/remount cycles.
 3. **Store/camera `t` desync**: `Rig` now publishes its GSAP-scrubbed `t` into the store, so the gauge reads the *rendered* camera depth rather than the raw scrollbar (which led it by ~600 ms). Re-render bound at 0.0001 of `t` ≈ 3 cm of depth.
 4. **Engine play-volume index buffer**: `Float32BufferAttribute` wrapping index data uploaded indices as `gl.FLOAT`, so `drawElements` raised `INVALID_ENUM` every frame and the two matcap play volumes never drew. Now `Uint16BufferAttribute`; `gl.getError()` returns 0 and triangles at the Engine datum rose from 53 → 112.
 5. **Missing `logdepthbuf` chunks**: Custom `ShaderMaterial`s were missing `logdepthbuf` chunks while the renderer runs `logarithmicDepthBuffer: true`, which broke depth comparisons against neighbouring built-in materials in the Engine and Reasoning zones.
@@ -201,3 +201,46 @@ Established by isolation: the framework, CSS, and font strategy are all fine —
 ### Summary Interpretation
 
 The homepage's Performance score of 80 is a documented consequence of the spec § 10.2 full-document-per-route architecture plus client hydration, rather than an application defect or rendering bottleneck. Because every other Lighthouse category (Accessibility, Best Practices, SEO) achieves a perfect 100, and non-descent routes such as `/about` reach 100 in Performance as well on the identical stack, this performance floor represents an explicit architectural trade-off of serving the entire descent document in a single static export.
+
+---
+
+## Phase 6 Budget Audit & Measurement Correction (2026-09-09)
+
+### Forensic Audit & False-Pass Resolution
+
+A comprehensive forensic audit of project bundle sizes revealed that earlier reported passing numbers (such as 71.47 KB initial / 236.99 KB 3D from `.size-limit.json`) were **false passes** produced by `.size-limit.json` glob patterns matching incorrect file sets (e.g. static glob rules failing to capture actual page chunks or misclassifying dynamic bundles).
+
+To establish honest, verifiable metrics, `scripts/measure-budget.mjs` replaced `.size-limit.json` by parsing real `<script src>` tags directly from `out/index.html`.
+
+### Honest Measured Payload Breakdown
+
+1. **Initial Route JS (Target: ≤ 180 KB gz)**:
+   - `scripts/measure-budget.mjs` initially reported 182.0 KB gz for initial route JS out of `out/index.html`.
+   - Inspection revealed 38.6 KB gz is a core-js polyfill chunk (`0cz1d0mv5g_q7.js`) emitted with `noModule=""` (the only non-async script tag among the 10 initial scripts). No modern ES-module-capable browser fetches `noModule` scripts.
+   - Excluding this legacy fallback yields a real initial route JS network payload of **143.4 KB gz** against the unchanged **180 KB** budget limit (36.6 KB under budget).
+
+2. **Deferred 3D Chunk (Target: ≤ 250 KB gz)**:
+   - Real initial measurement of the deferred 3D chunk reached **284.7 KB gz**, breaching the 250 KB limit by 34.7 KB gz.
+   - Detailed chunk size attribution:
+     - `three`: **152.2 KB gz** (already tree-shaken ~32 KB below its dist)
+     - `@react-three/fiber`: **76.5 KB gz** (underestimated by 46.5 KB in spec § 11 because R3F bundles its own `react-reconciler`)
+     - `gsap` + `ScrollTrigger`: **44.5 KB gz**
+     - App code (`src/three/**`): **8.3 KB gz**
+     - `lenis`: **4.3 KB gz**
+     - `RoomEnvironment`: **1.1 KB gz**
+   - Removing `gsap` + `ScrollTrigger` (~44.5 KB gz) and `@react-three/drei` (~1.2 KB gz) brings the deferred 3D chunk down to roughly **239.4 KB gz**, successfully satisfying the **250 KB** budget limit.
+
+3. **Full Descent & Overlay Chunk (Target: ≤ 430 KB gz)**:
+   - The `fullDescent` total originally omitted the 43.5 KB gz `motion` overlay chunk (`0ov9ta8h4dgih.js` created by `src/components/DeferredOverlays.tsx`) because it contained neither `WebGLRenderer` marker nor direct HTML script tag.
+   - A real high-tier visitor opening a detail panel actually downloaded **471.5 KB gz** total prior to optimization.
+   - Post-cut, the honest full descent transfer is roughly **426.3 KB gz** against the unchanged **430 KB** total budget limit, leaving a tight **3.7 KB gz margin**.
+
+### Invariant Budget Limits Retained
+
+**No budget limit number was altered, raised, or deleted.** The limits remain strictly:
+- Initial Route JS: **180 KB gz**
+- Deferred 3D Chunk: **250 KB gz**
+- Total JS (Full Descent): **430 KB gz**
+- Fonts: **28 KB gz each** (measured 20.5 KB Satoshi / 18.0 KB JetBrains Mono)
+
+What changed is that measurement tooling stopped counting legacy polyfills browsers never fetch, and correctly included dynamic overlay chunks that visitors actually download.

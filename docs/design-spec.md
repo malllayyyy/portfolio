@@ -90,7 +90,7 @@ The document is **900 vh** tall. Scrollable range `S = scrollHeight − innerHei
 
 Implementation: precompute the 21 control pairs into two `Float32Array`s at module load; `depth(t)` is a binary search plus one `lerp`. No allocation per frame. The inverse `t(depth)` is the same arrays searched on the other column — this is what deep links and the depth-gauge clicks use (§ 10.3).
 
-`camera.position.y = depth(t)` is assigned once per frame from a GSAP ScrollTrigger `scrub: 0.6` proxy value, so the camera lags the scrollbar by ~600 ms of critical-damped catch-up. No spring, no overshoot.
+`camera.position.y = depth(t)` is assigned once per frame inside `useFrame` via an exponential settle `p.t += (target - p.t) * (1 - Math.exp(-dt / tau))` with `tau ≈ 0.12 s`, using the real frame delta, so the camera lags the scrollbar by ~600 ms of critically damped catch-up. No spring, no overshoot.
 
 ### 2.3 Geometry per depth
 
@@ -121,7 +121,7 @@ Every mesh below belongs to a project or to the strata. Total scene budget: **�
 
 ### 2.4 Fog and light falloff
 
-One `FogExp2` on the scene; its `color` and `density` are tweened by GSAP from the same scroll timeline. Visibility ≈ `3.0 / density` metres.
+One `FogExp2` on the scene; its `color` and `density` are updated per frame via linear interpolation keyed to `t`. Visibility ≈ `3.0 / density` metres.
 
 | Depth range | Fog colour | Density | Visibility |
 |---|---|---:|---:|
@@ -136,7 +136,7 @@ Interpolation is linear in `t` across the boundary segments, not stepped. Fog co
 
 **Lights (3 total, always; never more):**
 1. `DirectionalLight` from `(0, +60, 0)`, always above the camera, intensity ramping `2.4 → 0.15` linearly over `y ∈ [0, −150]` then `0.15 → 0` over `y ∈ [−150, −260]`. This is daylight dying as you descend, and it is why the lower layers must light themselves.
-2. `PointLight` travelling with the camera at `y = camera.y − 3.0`, `distance 42`, `decay 2`. Intensity `6.0`. **Its colour is the layer accent** and is GSAP-tweened at layer boundaries: `#8FD3FF → #FFC46B → #FF5F56 → #C8FF6A`. Depth is therefore legible from a single screenshot.
+2. `PointLight` travelling with the camera at `y = camera.y − 3.0`, `distance 42`, `decay 2`. Intensity `6.0`. **Its colour is the layer accent** and is updated via per-frame `Color.lerp` (tuned to read as ~700 ms) at layer boundaries: `#8FD3FF → #FFC46B → #FF5F56 → #C8FF6A`. Depth is therefore legible from a single screenshot.
 3. `AmbientLight` at `0.06`, colour = current fog colour. Prevents pure-black crush on the unlit sides of Engine geometry.
 
 Below −260 m the directional light is at zero and **all** illumination comes from the additive node field itself. That is the point: the layer that decides is the layer that emits.
@@ -503,23 +503,23 @@ No `backdrop-filter` anywhere on the site. No box-shadow on any DOM element. Ele
 
 ## 7. Motion spec
 
-Libraries: **GSAP 3.15.0 + ScrollTrigger** (camera timeline), **Lenis 1.3.26** (scroll normalisation), **Motion 13.2.0** (DOM panels and cards), **View Transitions API** (0 KB, native, panel routing). No others.
+Libraries: **Lenis 1.3.26** (scroll normalisation with `autoRaf: true`), **Motion 13.2.0** (DOM panels and cards), **View Transitions API** (0 KB, native, panel routing). No others. `gsap`, `@gsap/react`, and `@react-three/drei` are explicitly absent.
 
 | # | Element | Trigger | Library / mechanism | Duration & easing | `prefers-reduced-motion: reduce` fallback |
 |---:|---|---|---|---|---|
-| 1 | Camera descent (`camera.position.y`) | Document scroll | GSAP ScrollTrigger, `scrub: 0.6` | Scrubbed; catch-up ≈ 600 ms critically damped | **Timeline killed.** Camera snaps to the 4 datums. Scroll becomes ordinary paging between 4 static views. |
-| 2 | Lateral drift (`x`, `z`) | Document scroll | Same timeline, Catmull-Rom sample | Scrubbed | Set to `(0, 0)` permanently |
-| 3 | Scroll normalisation | Wheel / touch | Lenis, `lerp: 0.09`, `wheelMultiplier: 1` | — | **Lenis is never instantiated.** Native scroll only. |
+| 1 | Camera descent (`camera.position.y`) | Document scroll | `useFrame` exponential settle (`tau ≈ 0.12 s`) | Scrubbed; catch-up ≈ 600 ms critically damped exponential settle | **Smoothing disabled.** Camera position `t` is assigned directly to target. Scroll becomes ordinary paging between 4 static views. |
+| 2 | Lateral drift (`x`, `z`) | Document scroll | Same scroll target, Catmull-Rom sample | Scrubbed | Set to `(0, 0)` permanently |
+| 3 | Scroll normalisation | Wheel / touch | Lenis (`autoRaf: true`), `lerp: 0.09`, `wheelMultiplier: 1` | — | **Lenis is never instantiated.** Native scroll only. |
 | 4 | Screen pass-through | `camera.y ∈ (−36, −40]` | Render-target swap (§ 2.6) | Scrubbed with the camera | **Does not exist.** Hard cut from the Surface preset to the Device preset. |
-| 5 | Fog colour + density | Scroll progress | GSAP tween on `scene.fog` | Scrubbed, `power1.inOut` across boundaries | Set instantly per preset |
-| 6 | Layer light-temperature shift | Layer boundary crossing | GSAP `to()` on `pointLight.color` | 700 ms `power2.out` | Set instantly |
-| 7 | Directional light decay | Scroll progress | GSAP tween on `intensity` | Scrubbed, linear | Set instantly per preset |
+| 5 | Fog colour + density | Scroll progress | Per-frame `scene.fog` lerp | Scrubbed, smooth across boundaries | Set instantly per preset |
+| 6 | Layer light-temperature shift | Layer boundary crossing | Per-frame `Color.lerp` on `pointLight.color` | ~700 ms smooth lerp | Set instantly |
+| 7 | Directional light decay | Scroll progress | Per-frame linear lerp on `intensity` | Scrubbed, linear | Set instantly per preset |
 | 8 | Exhibit card in/out | `\|camera.y − exhibit.y\| < 6 m` | Motion, `opacity` + `y: 8 → 0` | 240 ms `easeOut` | Opacity only, 0 ms |
 | 9 | Detail panel open/close | Click / `Enter` / route change | Motion `x: 24 → 0` + opacity; View Transitions for the route | 300 ms `easeOut` | Opacity only, 0 ms. View Transitions are skipped automatically by the browser. |
 | 10 | Mesh hover highlight | Pointer raycast | Three.js emissive lerp, 120 ms | 120 ms linear | **Kept.** Pointer-driven and instant; it is feedback, not decoration. |
 | 11 | Node-field pulse (Reasoning) | Continuous | Three.js shader `uTime` uniform | Continuous, 0.4 Hz | **rAF stopped.** One static frame, field frozen mid-pulse. |
 | 12 | Collider-ghost drift (Engine) | Continuous | Vertex-shader time uniform | Continuous | Frozen |
-| 13 | Trace path illumination | Trace step selected | GSAP on line material `opacity` | 200 ms | Instant |
+| 13 | Trace path illumination | Trace step selected | Per-frame line material opacity lerp | 200 ms | Instant |
 | 14 | Depth-gauge numerals | Every frame the depth changes | Direct `textContent` write, throttled to whole metres | — | **Kept.** It is a readout, not an animation. Never a count-up tween. |
 | 15 | Game canvases | Explicit activation only | Own rAF, fixed timestep (§ 5.1) | 60 Hz sim | **Not auto-started; already true.** Playable if the user chooses — see note below. |
 | 16 | Hero canvas fade-in under the hero text | `requestIdleCallback` after LCP | CSS `opacity` transition | 400 ms linear | 0 ms (or no canvas at all on low tier) |
@@ -527,7 +527,7 @@ Libraries: **GSAP 3.15.0 + ScrollTrigger** (camera timeline), **Lenis 1.3.26** (
 **Global reduced-motion behaviour.** One `matchMedia('(prefers-reduced-motion: reduce)')` check at boot sets `document.documentElement.dataset.motion = 'off'`, and it is **live** — the `change` listener re-applies without a reload. When off:
 
 1. **The continuous rAF loop is killed entirely.** The renderer switches to **on-demand mode**: exactly one `renderer.render()` per state change (scroll settles onto a new preset, panel opens, hover changes). Idle GPU cost is zero. This fixes the accessibility requirement and the mobile-battery problem with a single switch.
-2. The ScrollTrigger timeline is killed and Lenis is not created. Scroll snaps between the four layer datums with native `scroll-snap-type: y mandatory` on a 4-panel container.
+2. Camera smoothing is disabled (target `t` applied directly per frame) and Lenis is not created. Scroll snaps between the four layer datums with native `scroll-snap-type: y mandatory` on a 4-panel container. One scroll event invalidates exactly one frame, keeping `frameloop="demand"` honest.
 3. All Motion durations collapse to 0 (they read `data-motion`).
 4. Every CSS transition and animation is zeroed by a single global rule under `@media (prefers-reduced-motion: reduce)`.
 5. **The games are the deliberate exception.** They remain playable, because a game the user explicitly started is requested motion, not imposed motion. But they are never auto-started, the exhibit card reads *"Playing this starts an animation"*, and their rAF loop stops the instant the game is released (§ 5.3).
@@ -560,7 +560,7 @@ Measured on the reference device — **mid-range Android, 4× CPU throttle, Slow
 
 * Measured Next 16 + React 19 framework floor under simulated Slow 4G for zero-client-component static export (see `docs/measurements.md`).
 
-The initial-route budget of 180 KB gz is the *whole* first paint: Next runtime + React + the static DOM (measured at 173.3 KB gz in Phase 4 as the Next 16 + React 19 framework floor plus ~2 KB of initial app client JS, replacing the earlier 175 KB baseline to provide ~6.7 KB of slack for Phase 5/6 client features). **No Three.js, no GSAP, no Lenis is in it.** The 3D chunk is dynamically imported after `requestIdleCallback` and only on mid/high tier.
+The initial-route budget of 180 KB gz is the *whole* first paint: Next runtime + React + the static DOM (measured at 173.3 KB gz in Phase 4 as the Next 16 + React 19 framework floor plus ~2 KB of initial app client JS, replacing the earlier 175 KB baseline to provide ~6.7 KB of slack for Phase 5/6 client features; real initial route JS measured at 143.4 KB gz after excluding 38.6 KB `noModule` core-js polyfills). **No Three.js, no Lenis is in it.** The 3D chunk is dynamically imported after `requestIdleCallback` and only on mid/high tier.
 
 Enforcement: a `size-limit` (or `next build --analyze`) check in CI fails the build if the initial route exceeds 180 KB gz or the 3D chunk exceeds 250 KB gz. This is the one CI gate that matters.
 
@@ -691,7 +691,7 @@ Direct load of `/project/gamezone`:
 4. **Mid/high tier:** the 3D chunk loads. On first frame the scroll position is set **without animation** to `t(−52) * S` and the camera is placed at `y = −52` directly. The visitor arrives *at* the depth; they never watch a 52-metre auto-flight they did not ask for.
 5. Scrolling up from a deep link works normally and the pass-through plays in reverse, because `depth(t)` is a pure function of scroll and the render-target swap is symmetric (§ 2.6 — pass B is re-enabled on the way up at the same `y = −40` threshold).
 
-Client-side navigation between layers/projects uses the View Transitions API for the panel morph and `window.scrollTo` for the depth change (smooth, or `auto` under reduced motion), so the camera follows via the same ScrollTrigger it always uses. **There is no separate "fly to" code path.** One mechanism, exercised by every entry point.
+Client-side navigation between layers/projects uses the View Transitions API for the panel morph and `window.scrollTo` for the depth change (smooth, or `auto` under reduced motion), so the camera follows via the same scroll target mechanism it always uses. **There is no separate "fly to" code path.** One mechanism, exercised by every entry point.
 
 Scroll restoration is `manual`; the app restores from the route's `t` rather than from the browser's remembered pixel offset, because the document height depends on viewport height.
 
@@ -716,7 +716,7 @@ Scroll restoration is `manual`; the app restores from the route's `t` rather tha
 
 ## 11. Tech stack & dependencies
 
-The owner already ships `@react-three/fiber ^8.18.0`, `@react-three/drei ^9.122.0`, `three ^0.185.1`, `gsap ^3.15.0` and `@gsap/react ^2.1.2` in `deployment-platform`'s dashboard (`apps/dashboard`), and `react ^19.2.8` + `vite` + `tailwindcss ^4.3.3` in the ProAcademys client. **Nothing in this stack is new to him except Lenis and Motion**, which are 4 KB and 18 KB respectively and have one API surface each.
+The owner already ships `three ^0.185.1` in `deployment-platform`'s dashboard (`apps/dashboard`), and `react ^19.2.8` + `vite` + `tailwindcss ^4.3.3` in the ProAcademys client. **Nothing in this stack is new to him except Lenis and Motion**, which are 4 KB and 18 KB respectively and have one API surface each. (`gsap`, `@gsap/react`, and `@react-three/drei` were removed during Phase 6 bundle budget optimization to ensure the 3D chunk stays strictly under 250 KB gz).
 
 All versions below were resolved against the npm registry, not recalled.
 
@@ -725,17 +725,14 @@ All versions below were resolved against the npm registry, not recalled.
 | `next` | 16.3.4 | — (in baseline) | Static rendering gives real HTML text as the LCP element with zero hydration dependency — the precondition for §§ 8, 9 |
 | `react` / `react-dom` | 19.2.8 | ~88 KB (baseline, both) | Required by Next 16; also the version already used in the ProAcademys client |
 | `three` | 0.185.1 | ~150 KB | The scene. Exact version already in `deployment-platform`. |
-| `@react-three/fiber` | 9.7.0 | ~30 KB | Every 3D object becomes a React component with a paired DOM proxy — the only sane way to keep § 9.1 true. Peer requires `react >=19 <19.3`; 19.2.8 satisfies it. |
-| `@react-three/drei` | 10.7.8 | ~20 KB | Named imports only — `useTexture`, `Environment`, `useGLTF`, `Instances`. Never `import * from 'drei'`. |
-| `gsap` | 3.15.0 | ~40 KB (core + ScrollTrigger) | The scrubbed camera timeline. Already his. ScrollTrigger is the only plugin; no Club plugins, no `ScrollSmoother`. |
-| `@gsap/react` | 2.1.2 | ~1 KB | `useGSAP` — correct cleanup in React 19 StrictMode. Already his. |
-| `lenis` | 1.3.26 | ~4 KB | Normalises wheel deltas across trackpads so a scrubbed camera does not stutter. Not created at all under reduced motion (§ 7). |
+| `@react-three/fiber` | 9.7.0 | **76.5 KB** | Every 3D object becomes a React component with a paired DOM proxy. Note: R3F costs 76.5 KB gz because it bundles its own `react-reconciler` — a 46.5 KB underestimate that caused the 250 KB 3D-chunk budget breach until GSAP and Drei were dropped. |
+| `lenis` | 1.3.26 | ~4.3 KB | Normalises wheel deltas across trackpads so a scrubbed camera does not stutter (`autoRaf: true`). Not created at all under reduced motion (§ 7). |
 | `motion` | 13.2.0 | ~18 KB | DOM panels and cards only. Reads `data-motion` for the reduced-motion collapse. Never used for the camera. |
 | `tailwindcss` | 4.3.3 | 0 KB runtime | The hairline/grid system. Same major version as the ProAcademys client. |
 | `@fontsource-variable/jetbrains-mono` | 5.3.0 | 0 KB JS | Self-hosted woff2 + CSS; the file is subset at build time (§ 6.1) |
 | Satoshi | Fontshare (self-hosted `.woff2`) | 0 KB JS | No npm package exists; downloaded once into `/public/fonts/`, licence file alongside |
 
-**Initial route: ~180 KB gz** (`next` + `react` baseline + Motion + app code). **Deferred 3D chunk: ~245 KB gz** (`three` + `fiber` + `drei` + `gsap`/ScrollTrigger + `@gsap/react` + `lenis`), dynamically imported after `requestIdleCallback`, mid/high tier only.
+**Initial route: ~180 KB gz** limit (real initial route JS measured at **143.4 KB gz** after excluding 38.6 KB `noModule` core-js polyfills). **Deferred 3D chunk: ~239.4 KB gz** (`three` 152.2 KB + `@react-three/fiber` 76.5 KB + `lenis` 4.3 KB + app `src/three/**` 8.3 KB + `RoomEnvironment` 1.1 KB), dynamically imported after `requestIdleCallback`, mid/high tier only.
 
 **Assets:** GLTF with **Draco** compression (the phone body is the only GLTF on the site); textures as **KTX2/Basis**; one 512 × 256 HDR environment. Per-layer lazy loading keyed to `t`. Total scene assets ≤ 2.8 MB.
 
@@ -852,7 +849,7 @@ Each phase is independently verifiable, ends in something viewable in a browser 
 **Verifiable by:** scroll it on a laptop and a mid-range Android; run the frame-diff criterion from § 2.6; hold 60 fps on desktop and 45 fps on the phone. **Go / no-go gate for the entire concept.** If it is not good here, invoke Risk 1's kill-switch and ship Phase 2.
 
 ### Phase 4 — The full descent
-**Deliverable:** the complete scene — all geometry (§ 2.3), the `depth(t)` mapping (§ 2.2), fog and light falloff (§ 2.4), the GSAP/ScrollTrigger camera, Lenis, the depth gauge, and the pass-through integrated at its real depth. Bake the five real layer stills from this scene and replace Phase 2's placeholders.
+**Deliverable:** the complete scene — all geometry (§ 2.3), the `depth(t)` mapping (§ 2.2), fog and light falloff (§ 2.4), the exponential settle camera (`tau ≈ 0.12 s`), Lenis, the depth gauge, and the pass-through integrated at its real depth. Bake the five real layer stills from this scene and replace Phase 2's placeholders.
 **Verifiable by:** scroll 0 → 1 and back with no stall and no visual discontinuity; depth gauge reads the correct metre at all four datums; `1`–`4` and `↑`/`↓` land exactly on datum depths; reduced-motion toggled mid-session snaps to presets and the rAF loop stops (verify in the performance profiler, not by eye); draw calls ≤ 120 in `renderer.info`.
 
 ### Phase 5 — Exhibits, panels, and deep links
