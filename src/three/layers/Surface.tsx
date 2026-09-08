@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   BufferGeometry,
   CanvasTexture,
@@ -124,6 +124,13 @@ export function Surface() {
     return geom;
   }, []);
 
+  // P2 disposal cleanup for CanvasTexture and BufferGeometry
+  useEffect(() => {
+    return () => {
+      gridTexture?.dispose();
+      suspensionGeometry.dispose();
+    };
+  }, [gridTexture, suspensionGeometry]);
   return (
     <group>
       {/* 1. Strata ceiling at y = 0.1 facing down (1 draw call) */}
@@ -137,6 +144,7 @@ export function Surface() {
           color="#8FD3FF"
           alphaMap={gridTexture ?? undefined}
           transparent
+          opacity={0.3}
           depthWrite={false}
           side={DoubleSide}
         />
@@ -149,7 +157,7 @@ export function Surface() {
           <meshPhysicalMaterial
             transmission={0.9}
             thickness={0.4}
-            roughness={0.22}
+            roughness={0.08}
             ior={1.45}
             color="#EDF1F5"
             transparent
@@ -158,7 +166,7 @@ export function Surface() {
           <meshStandardMaterial
             opacity={0.55}
             transparent
-            roughness={0.22}
+            roughness={0.08}
             color="#EDF1F5"
           />
         )}
@@ -171,7 +179,7 @@ export function Surface() {
           <meshPhysicalMaterial
             transmission={0.9}
             thickness={0.4}
-            roughness={0.22}
+            roughness={0.08}
             ior={1.45}
             color="#EDF1F5"
             transparent
@@ -180,7 +188,7 @@ export function Surface() {
           <meshStandardMaterial
             opacity={0.55}
             transparent
-            roughness={0.22}
+            roughness={0.08}
             color="#EDF1F5"
           />
         )}

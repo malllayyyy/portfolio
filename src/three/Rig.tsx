@@ -9,6 +9,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { depth } from './depth';
 import { getMotion, subscribeMotion } from '../lib/motion-pref';
+import { setScrollT } from '../lib/store';
+declare global {
+  interface Window {
+    ScrollTrigger?: typeof ScrollTrigger;
+    __rig?: { cameraY: number; t: number };
+  }
+}
+
 
 /**
  * § 2.1 — Lateral drift curve (amplitude ±3.2 m).
@@ -61,7 +69,9 @@ export function Rig() {
     }
 
     gsap.registerPlugin(ScrollTrigger);
-
+    if (typeof window !== 'undefined') {
+      window.ScrollTrigger = ScrollTrigger;
+    }
     let lenis: Lenis | null = null;
     let tween: gsap.core.Tween | null = null;
     let tickerCb: ((time: number) => void) | null = null;
@@ -79,6 +89,7 @@ export function Rig() {
         tickerCb = null;
       }
       if (tween) {
+        tween.scrollTrigger?.kill();
         tween.kill();
         tween = null;
       }
@@ -144,6 +155,7 @@ export function Rig() {
         tickerCb = null;
       }
       if (tween) {
+        tween.scrollTrigger?.kill();
         tween.kill();
         tween = null;
       }
@@ -169,9 +181,15 @@ export function Rig() {
       }
     }
 
+    if (typeof window !== 'undefined') {
+      window.__rig = { cameraY: y, t };
+    }
+
     camera.position.set(x, y, z);
     camera.up.set(0, 0, -1);
     camera.lookAt(x, y - 10, z);
+
+    setScrollT(t);
   });
 
   return (

@@ -126,7 +126,7 @@ export function Fog() {
           }
         }}
         position={[0, 60, 0]}
-        intensity={2.4}
+        intensity={0.9}
         color="#EDF1F5"
       />
       <pointLight

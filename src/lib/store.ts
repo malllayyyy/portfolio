@@ -4,6 +4,14 @@ import { useSyncExternalStore } from 'react';
 import { detectTier, type Tier } from './tier';
 import { subscribeMotion } from './motion-pref';
 
+declare global {
+  interface Window {
+    __store?: {
+      getSnapshot: () => StoreState;
+    };
+  }
+}
+
 export type StoreState = {
   t: number;
   tier: Tier;
@@ -34,20 +42,20 @@ function computeT(): number {
 }
 
 function updateState(partial: Partial<StoreState>): void {
-  const nextT = partial.t ?? currentSnapshot.t;
+  let nextT = partial.t ?? currentSnapshot.t;
   const nextTier = partial.tier ?? currentSnapshot.tier;
   const nextPanel = 'panel' in partial ? partial.panel! : currentSnapshot.panel;
 
-  if (nextT === currentSnapshot.t && nextTier === currentSnapshot.tier && nextPanel === currentSnapshot.panel) return;
+  if (nextT < 0) nextT = 0;
+  if (nextT > 1) nextT = 1;
+
+  const tChanged =
+    nextT !== currentSnapshot.t &&
+    (Math.abs(nextT - currentSnapshot.t) >= 0.0001 || nextT === 0 || nextT === 1);
+
+  if (!tChanged && nextTier === currentSnapshot.tier && nextPanel === currentSnapshot.panel) return;
   currentSnapshot = { t: nextT, tier: nextTier, panel: nextPanel };
   notify();
-}
-
-function handleScroll(): void {
-  const nextT = computeT();
-  if (nextT !== currentSnapshot.t) {
-    updateState({ t: nextT });
-  }
 }
 
 function syncClientState(): void {
@@ -60,17 +68,20 @@ function syncClientState(): void {
 function ensureListening(): void {
   if (typeof window === 'undefined' || isListening) return;
   isListening = true;
-
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  window.addEventListener('resize', handleScroll, { passive: true });
+  if (typeof window !== 'undefined') {
+    window.__store = { getSnapshot };
+  }
 
   subscribeMotion(() => {
     if (typeof window !== 'undefined') {
       updateState({ tier: detectTier() });
     }
   });
-
   syncClientState();
+}
+
+if (typeof window !== 'undefined') {
+  ensureListening();
 }
 
 export function subscribe(callback: () => void): () => void {

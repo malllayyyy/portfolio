@@ -152,9 +152,10 @@ export function PassThrough({ screenMaterial }: { screenMaterial: ShaderMaterial
         camera.layers.set(INTERIOR);
         camera.layers.enable(EXTERIOR);
       }
+      screenMaterial.uniforms.uHasMap.value = 0.0;
       gl.setRenderTarget(null);
       gl.render(scene, camera);
-      reportLab(y, false, gl.info.render.calls, gl.info.render.triangles, null, !!screenMaterial.uniforms.uMap.value, true);
+      reportLab(y, false, gl.info.render.calls, gl.info.render.triangles, null, false, true);
       return;
     }
 
@@ -171,9 +172,9 @@ export function PassThrough({ screenMaterial }: { screenMaterial: ShaderMaterial
     // pass B — phone + bezel + quad, the quad sampling pass A in screen space
     gl.setRenderTarget(null);
     camera.layers.set(EXTERIOR);
+    screenMaterial.uniforms.uHasMap.value = 1.0;
     screenMaterial.uniforms.uMap.value = target.texture;
     gl.render(scene, camera);
-
     reportLab(y, true, gl.info.render.calls, gl.info.render.triangles, `${target.width}x${target.height}`, !!screenMaterial.uniforms.uMap.value, true);
   }, 1);
 

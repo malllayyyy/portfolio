@@ -84,7 +84,7 @@ export default function CanvasContainer() {
         gl.outputColorSpace = SRGBColorSpace;
         frames.current = 0;
       }}
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 0 }}
+      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: -1, pointerEvents: 'none' }}
     >
       <SceneEnvironment />
       <Scene />

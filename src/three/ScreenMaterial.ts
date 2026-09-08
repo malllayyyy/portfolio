@@ -24,6 +24,7 @@ export function createScreenMaterial(): ShaderMaterial {
   const material = new ShaderMaterial({
     uniforms: {
       uMap: { value: null },
+      uHasMap: { value: 0.0 },
       uResolution: { value: new Vector2(1, 1) },
     },
     vertexShader: /* glsl */ `
@@ -33,10 +34,15 @@ export function createScreenMaterial(): ShaderMaterial {
     `,
     fragmentShader: /* glsl */ `
       uniform sampler2D uMap;
+      uniform float uHasMap;
       uniform vec2 uResolution;
       void main() {
-        vec2 uv = gl_FragCoord.xy / uResolution;   // screen-space, NOT the quad's UV
-        gl_FragColor = texture2D(uMap, uv);
+        if (uHasMap < 0.5) {
+          gl_FragColor = vec4(0.055, 0.067, 0.086, 1.0);
+        } else {
+          vec2 uv = gl_FragCoord.xy / uResolution;   // screen-space, NOT the quad's UV
+          gl_FragColor = texture2D(uMap, uv);
+        }
       }
     `,
     depthWrite: true,
