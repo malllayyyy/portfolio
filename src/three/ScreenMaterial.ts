@@ -4,15 +4,21 @@ import { ShaderMaterial, Vector2 } from 'three';
  * § 2.6 — the screen quad is a WINDOW, not a screen.
  *
  * The fragment shader samples the interior render target in SCREEN space via
- * `gl_FragCoord`, never via the quad's own UVs. Because pass A was rendered
- * with the same camera matrices as pass B, every texel the quad shows is
- * exactly the texel pass A would have written to that pixel — so the frame
- * where the quad stops being drawn is bit-identical to the frame before it.
- * Sampling `vUv` instead would stretch the interior across the quad and the
- * swap frame would pop. That is the single mistake this file exists to avoid.
+ * `gl_FragCoord`, never via the quad's own UVs. Because pass A was rendered with
+ * the same camera matrices as pass B, every texel the quad shows is the texel
+ * pass A would have written to that pixel. Sampling `vUv` would stretch the
+ * interior across the quad and the swap frame would pop. That is the single
+ * mistake this file exists to avoid.
  *
- * `toneMapped: false` matters just as much: pass A already went through ACES,
- * and tone-mapping it a second time is its own one-frame value pop.
+ * The sample is passed through untouched, and `toneMapped` is false, because the
+ * render target is a byte target declaring `SRGBColorSpace` — three writes into
+ * it through the same encoding path the canvas uses, so the stored pixels are
+ * already display-ready. Applying the ACES curve or the sRGB transfer a second
+ * time here is its own one-frame value pop.
+ *
+ * This pairing is measured, not assumed: with it, the swap frame diffs at 6.6
+ * mean against a 13.85 median, and both window boundaries are clean. See
+ * docs/measurements.md § Phase 3.
  */
 export function createScreenMaterial(): ShaderMaterial {
   const material = new ShaderMaterial({

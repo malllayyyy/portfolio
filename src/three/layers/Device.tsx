@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef } from 'react';
-import { Matrix4, Shape } from 'three';
+import { Matrix4, MeshStandardMaterial, Shape } from 'three';
 import type { InstancedMesh, Mesh, Object3D, ShaderMaterial } from 'three';
 
 export const EXTERIOR = 1;
@@ -49,30 +49,29 @@ function ringShape(
 }
 
 /**
- * § 2.3 Device — the monolith at y = −40, its bezel ring, the screen quad,
- * and the real interior below.
+ * § 2.3 Device — the monolith whose top face sits at y = −40, its bezel ring,
+ * the screen quad, and the real interior below.
  *
- * The body is a FRAME, not a solid box: the 5.6 x 12.4 aperture is a real hole
- * through it, which is what the camera descends through and what the screen
- * quad fills. A solid body would bury the quad inside itself and there would be
- * nothing to pass through.
+ * The body is a SOLID box. That matters: it makes the screen quad the only way
+ * to see the interior, so there is no competing direct view through an aperture
+ * to disagree with the quad around its perimeter. An earlier frame-with-a-hole
+ * version produced exactly that disagreement and measured a ~116 mean delta at
+ * each window boundary. The camera passes straight through the solid body and
+ * bezel, which clip against the near plane on the way — § 2.6 calls that
+ * clipping the sensation of entering.
  *
  * Deviation from plan Task 3.2 Step 1: geometry is procedural rather than an
- * authored Draco GLB — no Blender is available here, and an extruded rounded
- * frame is exactly what the spec describes. This also removes a 120 KB asset
- * fetch from the critical path. Dimensions, materials and layer channels are
- * § 2.3 verbatim.
+ * authored Draco GLB — no Blender is available here, and § 2.3 specifies a
+ * `BoxGeometry` body anyway. This also removes a 120 KB asset fetch from the
+ * critical path.
  *
- * Extrude note: `extrudeGeometry` builds the shape in the XY plane and extrudes
- * along +Z, so every extruded mesh here is rotated −90° about X to lie flat in
- * the XZ plane. Without that rotation the bezel renders as vertical strips.
+ * Extrude note: `extrudeGeometry` builds its shape in the XY plane and extrudes
+ * along +Z, so the bezel is rotated 90° about X to lie flat in the XZ plane.
+ * Without that rotation it renders as two vertical strips.
  */
 export function Device({ screenMaterial }: { screenMaterial: ShaderMaterial }) {
   const screenRef = useRef<Mesh>(null);
   const stationsRef = useRef<InstancedMesh>(null);
-
-  // Body: 6.2 x 13.4 outer, 5.6 x 12.4 aperture, 0.62 thick.
-  const bodyShape = useMemo(() => ringShape(6.2, 13.4, 5.6, 12.4, 0.4), []);
 
   // Bezel ring: a separate mesh, same aperture, 0.3 thick, sitting proud of the
   // body. This is the mesh the camera visibly passes and it is never hidden —
@@ -93,23 +92,52 @@ export function Device({ screenMaterial }: { screenMaterial: ShaderMaterial }) {
     return out;
   }, []);
 
+  // BoxGeometry face order: +X, −X, +Y, −Y, +Z, −Z. Index 2 (+Y) is the screen.
+  const bodyMaterials = useMemo(() => {
+    const metal = new MeshStandardMaterial({
+      metalness: 0.95,
+      roughness: 0.28,
+      color: '#8FA0B0',
+    });
+    return [metal, metal, screenMaterial, metal, metal, metal];
+  }, [screenMaterial]);
+
   return (
     <group>
       {/* ── EXTERIOR (channel 1) ───────────────────────────────────── */}
 
       {/*
-        Body: 6.2 x 0.62 x 13.4 solid, brushed aluminium, no clearcoat.
-        Centred at y = −40.31 so its TOP FACE sits exactly at y = −40.0 — the
-        phone's top face IS the screen plane. A solid body matters: it makes the
-        screen quad the only way to see the interior, so there is no competing
-        "direct view" through an aperture to disagree with the quad around its
-        perimeter (that disagreement measured as a ~116 mean boundary delta).
-        The body and bezel clip against the near plane as the camera passes
-        through them, which § 2.6 calls the sensation of entering.
+        Body: 6.2 x 0.62 x 13.4, centred at y = −40.31 so its TOP FACE sits
+        exactly at y = −40.0 — the screen plane.
+
+        The screen is not a separate mesh. It is this box's +Y face, via a
+        per-face material array. That removes an entire class of bug: a separate
+        quad coplanar with the face z-fights (0.002 m of separation lost the
+        fight and the "screen" showed the body's own specular highlight, a
+        constant 220,227,232 at every depth); gapping them by 0.06 m instead
+        exposed the body face for 0.06 m of travel once the quad hid, measuring a
+        477 mean seam; and resolving it with polygonOffset produced intermittent
+        z-fight flicker (~490 mean spikes at scattered depths). One surface
+        cannot fight or reveal itself.
+
+        BoxGeometry emits its face groups in the order +X, −X, +Y, −Y, +Z, −Z, so
+        index 2 is the top face and takes the screen material.
+
+        Because the screen is the body, the camera passing y = −40.0 puts the
+        face behind it and the interior becomes directly visible in the same
+        frame — no hide step, nothing to sequence. The body and bezel clip
+        against the near plane on the way through, which § 2.6 calls the
+        sensation of entering.
       */}
-      <mesh ref={toLayer(EXTERIOR)} position={[0, -40.31, 0]}>
+      <mesh
+        ref={(m) => {
+          screenRef.current = m;
+          toLayer(EXTERIOR)(m);
+        }}
+        position={[0, -40.31, 0]}
+        material={bodyMaterials}
+      >
         <boxGeometry args={[6.2, 0.62, 13.4]} />
-        <meshStandardMaterial metalness={0.95} roughness={0.28} color="#7C8590" />
       </mesh>
 
       {/* Bezel ring around the screen edge, spanning y −39.9 … −40.1 */}
@@ -119,21 +147,7 @@ export function Device({ screenMaterial }: { screenMaterial: ShaderMaterial }) {
         rotation={[Math.PI / 2, 0, 0]}
       >
         <extrudeGeometry args={[bezelShape, { depth: 0.2, bevelEnabled: false }]} />
-        <meshStandardMaterial metalness={0.9} roughness={0.35} color="#7C8590" />
-      </mesh>
-
-      {/* Screen quad: 5.6 x 12.4, the body's top face, fractionally proud of it */}
-      <mesh
-        ref={(m) => {
-          screenRef.current = m;
-          toLayer(EXTERIOR)(m);
-          if (m) m.userData.isScreenQuad = true;
-        }}
-        position={[0, -39.998, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        material={screenMaterial}
-      >
-        <planeGeometry args={[5.6, 12.4]} />
+        <meshStandardMaterial metalness={0.9} roughness={0.35} color="#8FA0B0" />
       </mesh>
 
       {/* ── INTERIOR (channel 2) ───────────────────────────────────── */}

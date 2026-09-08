@@ -52,13 +52,18 @@ const BOTTOM = -44;
 /** Maps document scroll linearly onto camera.y ∈ [−30, −44]. */
 function ScrollCamera() {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  // Under reduced motion the canvas runs `frameloop="demand"`, where R3F only
+  // draws when something calls invalidate(). Scrolling is not an event R3F
+  // tracks, so without this the scene paints once and then freezes for the rest
+  // of the visit — the opposite of what § 9.4 asks for.
+  const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
     // near is NEVER animated: changing it mid-descent shifts the depth-buffer
     // distribution and z-fights the Engine wireframes in Phase 4.
     // 0.02 rather than 0.1 so the screen quad stays inside the frustum until
     // the camera is ~1 frame from the screen plane.
-    camera.near = 0.02;
+    camera.near = 0.01;
     camera.far = 420;
     camera.fov = 55;
     camera.up.set(0, 0, -1); // looking straight down −Y
@@ -70,12 +75,13 @@ function ScrollCamera() {
       const y = TOP + (BOTTOM - TOP) * t;
       camera.position.set(0, y, 0); // zero lateral drift in the prototype
       camera.lookAt(0, y - 1, 0);
+      invalidate();
     };
 
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [camera]);
+  }, [camera, invalidate]);
 
   return null;
 }
@@ -123,7 +129,7 @@ export default function Scene() {
         preserveDrawingBuffer:
           typeof document !== 'undefined' && document.documentElement.dataset.lab === '1',
       }}
-      camera={{ position: [0, TOP, 0], fov: 55, near: 0.02, far: 420 }}
+      camera={{ position: [0, TOP, 0], fov: 55, near: 0.01, far: 420 }}
       onCreated={({ gl }) => {
         gl.setClearColor('#06080B');
         gl.toneMapping = ACESFilmicToneMapping;

@@ -42,22 +42,34 @@ Under simulated Slow 4G throttling (1.6 Mbps / 150 ms RTT / 4× CPU slowdown), L
 ### G3.1 — frame-diff across the swap
 
 Method: `readPixels` on the central 40 % of the drawing buffer (640 × 400 of
-1600 × 1000), stepping the camera in 0.02 m increments across y = −39.6 → −40.4
-with a 60 ms settle per step. Metric is the mean per-pixel absolute RGB delta
-between adjacent frames. `preserveDrawingBuffer` is enabled on the lab route
-only, because a swapped-away drawing buffer cannot be read back.
+1600 × 1000), stepping the camera in **0.02 m** increments with a 55 ms settle
+per step. Metric is the mean per-pixel absolute RGB delta between adjacent
+frames. `preserveDrawingBuffer` is enabled on the lab route only, because a
+swapped-away drawing buffer cannot be read back.
 
-| Stage | Swap-frame delta (mean) | Median delta | Verdict |
+The 0.02 m sweep is the authoritative seam test. A 0.1 m sweep is too coarse
+near the screen plane: a single 0.1 m step there legitimately changes the view a
+great deal, because interior parallax is extreme within centimetres of the
+plane, so it reports ~112 at y = −40 even when the fine sweep is clean.
+
+| Architecture | Swap window worst | Median | Verdict |
 |---|---:|---:|---|
-| Initial implementation | **147.24** (worst 575) | 4.02 | FAIL — swap was the outlier |
-| After exterior kept past the boundary | 18.42 | 11.26 | Improved, seam remained |
-| After byte-type sRGB render target | **12.77** | 13.85 | **PASS — swap is below the median** |
+| Channel 2 only below the plane | **147.24** (worst px 575) | 4.02 | FAIL — exterior popped out of existence |
+| Both channels below the plane | 18.42 | 11.26 | Improved, seam remained |
+| Separate quad, 0.06 m above body face | **477.51** | 3.15 | FAIL — hiding the quad exposed the body face |
+| Coplanar quad + polygonOffset | ~490 spikes, scattered | 17.88 | FAIL — intermittent z-fight flicker |
+| **Screen is the body's +Y face** | **25.09** | 13.32 | **PASS — no outlier (< 2× median)** |
 
-Final swap window, y = −39.96 → −40.06: `12.39, 11.23, 12.77, 11.40, 12.80, 13.85`.
-The swap frame is statistically indistinguishable from ordinary camera motion.
-**Black frames across the full −30 → −44 sweep: 0.** Luminance floor 16.46.
+Final architecture: the screen is not a separate mesh at all. It is the body
+box's `+Y` face, assigned via a per-face material array (`BoxGeometry` emits
+groups in the order +X, −X, +Y, −Y, +Z, −Z, so index 2 is the top). One surface
+cannot z-fight with itself, cannot be revealed by hiding something else, and
+needs no visibility sequencing: when the camera passes y = −40.0 the face is
+behind it and the interior is directly visible in the same frame.
 
-### Three real defects this gate caught
+**Black frames across the full −30 → −44 sweep: 0.**
+
+### Five real defects this gate caught
 
 1. **Lights on channel 0 illuminated nothing.** A light only lights an object
    when their layer masks intersect, and § 2.6 pins every mesh to channel 1 or
@@ -66,17 +78,34 @@ The swap frame is statistically indistinguishable from ordinary camera motion.
 2. **Metal with nothing to reflect is black.** `metalness: 0.95` needs an
    environment; added the § 6.5 shared environment, generated in-process from
    three's bundled `RoomEnvironment` via PMREM so no remote HDR is fetched.
-3. **The swap pop was a colour-transfer mismatch, not geometry.** Mean RGB
-   jumped (32.5, 22.2, 10) → (68.5, 59.7, 43.1) — a *non-uniform* 2.1× / 2.7× /
-   4.3× per-channel ratio, the signature of linear pixels displayed without sRGB
-   encoding. Root cause: three keeps **float** render targets linear and applies
-   output encoding only to **byte** targets, so `HalfFloatType` handed the quad
-   linear pixels while the direct view was sRGB-encoded. Fixed with
-   `UnsignedByteType` + `texture.colorSpace = SRGBColorSpace`.
+3. **`HalfFloatType` render targets were not renderable here.** A half-float
+   colour attachment needs `EXT_color_buffer_float`; without it the framebuffer
+   is incomplete and the quad sampled undefined data — a constant
+   ACES-tonemapped white (220, 227, 232) at *every* depth, with `uMap` bound and
+   the quad visible. Diagnosed by noticing the value did not change across 5.5 m
+   of camera travel, which rendered content cannot do. `UnsignedByteType` is
+   renderable everywhere and costs nothing here (no post-processing).
+4. **A 0.002 m offset loses the depth fight.** With the screen quad that close
+   to the body's top face, the body won and the "screen" showed the body's own
+   specular highlight. Widening the gap to 0.06 m fixed that but created a worse
+   seam (the face was exposed for 0.06 m of travel after the quad hid, 477
+   mean), and `polygonOffset` produced intermittent flicker instead. Resolved
+   structurally by deleting the quad and making the screen the body's own face.
+5. **The render target was never reallocated on resize.** `allocate()` was
+   gated behind `if (!rt.current)`, so after first entry it never ran again:
+   any resize, OS zoom or orientation change left `uResolution` and the target
+   dimensions stale, breaking the screen-space sampling the mechanic depends on.
+   Now called unconditionally every in-window frame (it no-ops when unchanged).
 
-Residual large deltas at y = −39.7 (28.9) and y = −40.26 (117.8) are **aliasing
-of the thin high-contrast wireframe grid**, not seams: screenshots either side
-are visually identical with the same draw-call and triangle counts.
+Two further defects came from the review gate rather than measurement: reduced
+motion froze the scene entirely (`frameloop="demand"` renders only on
+`invalidate()`, which the scroll handler never called), and the phone body used
+`#7C8590`, outside the closed 10-token palette — now `#8FA0B0`.
+
+Residual large deltas at y = −39.7 and y = −31.3 are **aliasing of the thin
+high-contrast wireframe grid**, not seams: screenshots either side are visually
+identical with the same draw-call and triangle counts.
+
 
 ### G3.4 / G3.5 — chunk isolation
 
@@ -99,8 +128,9 @@ are visually identical with the same draw-call and triangle counts.
 
 | Plan said | Built | Why |
 |---|---|---|
-| `phone.glb`, Draco, ≤ 9 k tris | Procedural `boxGeometry` + extruded bezel ring | No Blender available; a box with a bevel is what § 2.3 describes, and this removes a 120 KB asset fetch |
-| `camera.near = 0.1` | `0.02` (static, never animated) | At 0.1 the quad clipped 0.1 m before the screen plane, leaving pass B nothing to sample — a 0.4 m black band |
-| Two-pass only within y ∈ (−36, −40] | Two-pass for the whole approach; both channels below | With a solid body the quad is the only way in, so there is no competing direct view to disagree with around the aperture |
-| `HalfFloatType` render target | `UnsignedByteType` + sRGB colour space | See defect 3 above — this is what actually fixed the seam |
-| Body centred at y = −40 | Centred at −40.31, top face at −40.0 | Makes the phone's top face the screen plane; a body centred on −40 buries the quad inside itself |
+| `phone.glb`, Draco, ≤ 9 k tris | Procedural `BoxGeometry` + extruded bezel ring | No Blender available; § 2.3 specifies a `BoxGeometry` body anyway, and this removes a 120 KB asset fetch |
+| `camera.near = 0.1` | `0.01` (static, never animated) | At 0.1 the screen face clipped 0.1 m early, leaving pass B nothing to sample — a 0.4 m black band |
+| Two-pass only within y ∈ (−36, −40] | Two-pass for the whole approach; both channels below | The screen is the only way in, so there is no competing direct view; and dropping channel 1 below the plane made the body pop out of existence |
+| `HalfFloatType` render target, `samples: 4` | `UnsignedByteType`, `samples: 0` | Half-float needs `EXT_color_buffer_float` to be renderable (defect 3); MSAA adds a resolve-path hazard for a texture sampled 1:1 |
+| Separate screen quad at y = −40 | The body's `+Y` face carries the screen material | Removes the z-fight and the hide-step seam entirely (defect 4) |
+| Body centred at y = −40 | Centred at −40.31, top face at −40.0 | Puts the screen plane exactly at −40.0; a body centred there would bury the screen inside itself |
