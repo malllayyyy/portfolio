@@ -136,7 +136,7 @@ export function ExhibitProxyNav({ exhibits, onSelectExhibit, className = '' }: E
   return (
     <nav
       aria-label="Exhibits navigation"
-      className={`sr-only focus-within:not-sr-only focus-within:fixed focus-within:top-4 focus-within:left-4 focus-within:z-50 focus-within:p-4 focus-within:bg-strata focus-within:border focus-within:border-hairline focus-within:rounded focus-within:shadow-xl ${className}`}
+      className={`sr-only focus-within:not-sr-only focus-within:fixed focus-within:top-4 focus-within:left-4 focus-within:z-50 focus-within:p-4 focus-within:bg-strata focus-within:border focus-within:border-hairline focus-within:rounded focus-within:outline-2 focus-within:outline-[#8FD3FF] ${className}`}
     >
       <h2 className="font-mono text-t-xs text-muted mb-2 uppercase tracking-wider">
         Exhibits (Scroll Order)
