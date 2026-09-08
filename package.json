@@ -8,13 +8,10 @@
     "start": "npx serve out",
     "subset-fonts": "bash scripts/subset-fonts.sh",
     "test": "vitest run",
-    "size": "size-limit"
+    "size": "node scripts/measure-budget.mjs"
   },
   "dependencies": {
-    "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
-    "gsap": "^3.15.0",
     "lenis": "^1.3.26",
     "motion": "13.2.0",
     "next": "16.3.4",
@@ -24,7 +21,6 @@
   },
   "devDependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
-    "@size-limit/file": "^13.0.3",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
@@ -32,7 +28,6 @@
     "@types/three": "^0.185.0",
     "puppeteer-core": "^25.10.0",
     "sharp": "^0.35.4",
-    "size-limit": "^13.0.3",
     "tailwindcss": "4.3.3",
     "typescript": "5.7.2",
     "vitest": "2.1.1"
