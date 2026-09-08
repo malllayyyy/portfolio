@@ -2,13 +2,13 @@
 
 import { useLayoutEffect, useEffect } from 'react';
 import { detectTier } from '@/lib/tier';
-
+import { initMotionPref } from '@/lib/motion-pref';
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export function TierBoot() {
   useIsomorphicLayoutEffect(() => {
-    const tier = detectTier();
-    document.documentElement.dataset.tier = tier;
+    document.documentElement.dataset.tier = detectTier();
+    initMotionPref();
   }, []);
 
   return null;
