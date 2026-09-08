@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { SITE, SITE_URL } from '@/content/site';
+import { TierBoot } from '@/components/TierBoot';
+import { TierToggle } from '@/components/TierToggle';
 import './globals.css';
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: 'Malay Chaudhary — Substrate', template: '%s' },
@@ -31,7 +32,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="theme-color" content="#06080B" />
       </head>
       <body>
+        <TierBoot />
         {children}
+        <footer className="page py-8 border-t border-hairline font-mono text-t-xs text-muted">
+          <TierToggle />
+        </footer>
         <noscript>
           <p className="page py-12 font-mono text-t-sm">
             <a href="/resume">Résumé</a> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
