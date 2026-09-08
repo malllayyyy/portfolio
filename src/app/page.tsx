@@ -56,8 +56,8 @@ export function Descent() {
                 </p>
                 <p className="mt-6 font-display text-t-base text-light">
                   Four domains, presented as four depths of one stack: a self-hosted PaaS and a MERN
-                  rewrite at the surface, a gaming-cafe POS on the device below it, two Canvas 2D
-                  engines below that, and a control plane for AI agents at the bottom. Each layer is
+                  rewrite at the surface, a gaming-cafe POS on the device below it, a Canvas 2D
+                  engine below that, and a control plane for AI agents at the bottom. Each layer is
                   causally responsible for the one above it, and the projects are the evidence.
                 </p>
               </div>

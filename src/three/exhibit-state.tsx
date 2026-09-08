@@ -19,7 +19,6 @@ export type ExhibitSlug =
   | 'proacademys'
   | 'gamezone'
   | 'pong'
-  | 'pixel-quest'
   | 'switchboard';
 
 export interface ExhibitState {

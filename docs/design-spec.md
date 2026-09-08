@@ -681,6 +681,8 @@ Next 16 App Router, statically rendered. Every URL below is a real, crawlable, s
 | `/resume` | Résumé page: embedded PDF + a prominent direct download of `/malay-chaudhary-resume.pdf` |
 | `/#contact` | Anchor on Bedrock. Not a route — contact is four links, not a page. |
 
+
+*Deviation note (2026-09-09): Pixel Quest (`/project/pixel-quest`) was removed at the owner's explicit request. Pong remains as the sole playable game in the Engine layer.*
 Deliberately **not** routes: no `/projects` index (the descent is the index — a grid would reintroduce non-goal 2), no `/blog`, no `/uses`.
 
 ### 10.2 Deep-link load behaviour

@@ -3,15 +3,12 @@ import { useEffect } from 'react';
 import { GameTrigger } from './GameTrigger';
 
 type GameMountProps = {
-  game: 'pong' | 'pixel-quest';
+  game: 'pong';
 };
 
 export function GameMount({ game }: GameMountProps) {
-  const gameTitle = game === 'pong' ? 'PONG' : 'PIXEL QUEST';
-  const gameButtonText =
-    game === 'pong'
-      ? 'Play Pong — 7 points wins. Enter to start.'
-      : 'Play Pixel Quest — WASD / Arrows to move, E to talk. Enter to start.';
+  const gameTitle = 'PONG';
+  const gameButtonText = 'Play Pong — 7 points wins. Enter to start.';
 
   const containerId = `game-mount-${game}`;
 
@@ -79,26 +76,6 @@ export function GameMount({ game }: GameMountProps) {
         </div>
       </div>
 
-      {/* Touch / low-tier fallback notice for Pixel Quest */}
-      {game === 'pixel-quest' && (
-        <div
-          id={`${containerId}-touch-fallback`}
-          style={{ display: 'none' }}
-          className="p-4 bg-strata"
-        >
-          <img
-            src="/video/pixel-quest-poster.png"
-            alt="Pixel Quest gameplay poster frame"
-            className="w-full aspect-[16/10] bg-field border border-hairline rounded block object-cover"
-          />
-          <p className="mt-3 font-mono text-t-xs text-muted">
-            Not playable on touch — a WASD room needs a d-pad, and an on-screen d-pad at 390 px is worse than nothing. Gameplay recording pending.
-          </p>
-          <p className="mt-2 font-mono text-t-xs text-muted border-t border-hairline pt-2">
-            Mechanics: Top-down 2D RPG room in Canvas 2D. Axis-separated AABB collision (X/Y independent), diagonal velocity normalisation (× 0.7071), 3 wall obstacles, NPC proximity (20 px) with dynamic multiline word-wrap dialogue, and 4 bobbing skill orbs (Docker, React, Payments, Game Dev).
-          </p>
-        </div>
-      )}
 
       {/* Client trigger for game loading */}
       <GameTrigger game={game} />

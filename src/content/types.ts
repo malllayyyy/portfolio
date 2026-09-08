@@ -21,10 +21,10 @@ export type Presentation =
   | { kind: 'screenshots'; shots: Shot[] }
   | { kind: 'diagram'; component: 'deployment-platform' | 'gamezone' }
   | { kind: 'node-field' }
-  | { kind: 'playable'; game: 'pong' | 'pixel-quest' };
+  | { kind: 'playable'; game: 'pong' };
 
 export type Project = {
-  slug: 'deployment-platform' | 'proacademys' | 'gamezone' | 'pong' | 'pixel-quest' | 'switchboard';
+  slug: 'deployment-platform' | 'proacademys' | 'gamezone' | 'pong' | 'switchboard';
   title: string;
   layer: LayerId;
   /** camera.y of this exhibit, metres. Matches § 10.1 exactly. */

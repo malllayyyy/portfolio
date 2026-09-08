@@ -2712,6 +2712,7 @@ Expected: `wc -c public/video/*` — mp4 ≤ 400 KB, webm ≤ 300 KB, poster ≤
 - [ ] **Step 5: Verify.** On desktop: play with WASD, walk into a corner — the player slides along the wall rather than sticking (that is the axis-separated resolution working). On a phone: the video is there with a poster, it does **not** autoplay, and tapping it plays it silently.
 - [ ] **Step 6:** Commit — `feat: Pixel Quest ported to the fixed-timestep loop, with the touch fallback clip`.
 
+*Deviation note (2026-09-09): Task 2.7 (Pixel Quest) was undone and Pixel Quest removed from the repository at the owner's explicit request. Pong remains as the sole playable Canvas 2D engine in the Engine layer.*
 ---
 
 ### Task 2.8: Phase 2 gate

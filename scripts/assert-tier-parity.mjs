@@ -6,7 +6,6 @@ const REQUIRED_PROJECTS = [
   'ProAcademys',
   'GameZone',
   'Pong',
-  'Pixel Quest',
   'Switchboard'
 ];
 
@@ -31,7 +30,6 @@ const ROUTES = [
   'out/project/proacademys.html',
   'out/project/gamezone.html',
   'out/project/pong.html',
-  'out/project/pixel-quest.html',
   'out/project/switchboard.html'
 ];
 

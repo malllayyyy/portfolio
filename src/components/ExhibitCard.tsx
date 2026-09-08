@@ -80,8 +80,7 @@ export function ExhibitCard({
     isEngine ??
     (derivedLayer === 'engine' ||
       derivedKind === 'playable' ||
-      derivedSlug === 'pong' ||
-      derivedSlug === 'pixel-quest');
+      derivedSlug === 'pong');
 
   const [shouldRender, setShouldRender] = useState(isVisible);
   const [isExiting, setIsExiting] = useState(false);

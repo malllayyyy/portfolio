@@ -131,8 +131,6 @@ function createOpenBoxGeometry(w = 16, h = 1.6, d = 10): BufferGeometry {
 export interface EngineProps {
   /** Phase 5 seam: Game CanvasTexture quad for Pong at y = −124 */
   pongGameQuad?: React.ReactNode;
-  /** Phase 5 seam: Game CanvasTexture quad for Pixel Quest at y = −134 */
-  pixelQuestGameQuad?: React.ReactNode;
 }
 
 /**
@@ -193,12 +191,12 @@ function GameVolumeQuad({
  * § 2.3 Engine — depth y ∈ [−112, −150]
  * - Shared procedural 256² matcap texture (MeshMatcapMaterial)
  * - Visible camera frustum wireframe at y = −150, apex-up (1 draw call)
- * - Two 16 x 10 m play volume boxes at y = −124 (Pong) and y = −134 (Pixel Quest) (2 instanced draw calls)
+ * - One 16 x 10 m play volume box at y = −124 (Pong) (1 instanced draw call)
  * - 40 instanced wireframe collider ghosts on shared uTime uniform (1 draw call)
  *
  * All meshes are assigned to INTERIOR (layer channel 2).
  */
-export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
+export function Engine({ pongGameQuad }: EngineProps = {}) {
   const ghostMaterialRef = useRef<ShaderMaterial | null>(null);
   const ghostMeshRef = useRef<InstancedMesh | null>(null);
   const playVolumeMatcapRef = useRef<InstancedMesh | null>(null);
@@ -278,7 +276,7 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     [openBoxGeo]
   );
 
-  // Position instances for the 2 play volumes (Pong at y = -124, Pixel Quest at y = -134).
+  // Position instance for the play volume (Pong at y = -124).
   useLayoutEffect(() => {
     const obj = new Object3D();
 
@@ -287,13 +285,6 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
     obj.updateMatrix();
     playVolumeMatcapRef.current?.setMatrixAt(0, obj.matrix);
     playVolumeWireframeRef.current?.setMatrixAt(0, obj.matrix);
-
-    // Volume 1: Pixel Quest (y = -134, offset x = 3)
-    obj.position.set(3, -134, 0);
-    obj.updateMatrix();
-    playVolumeMatcapRef.current?.setMatrixAt(1, obj.matrix);
-    playVolumeWireframeRef.current?.setMatrixAt(1, obj.matrix);
-
     if (playVolumeMatcapRef.current) {
       playVolumeMatcapRef.current.instanceMatrix.needsUpdate = true;
       toInterior(playVolumeMatcapRef.current);
@@ -392,10 +383,7 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       });
     }
     const pongCanvas = document.getElementById('game-mount-pong-canvas');
-    const questCanvas = document.getElementById('game-mount-pixel-quest-canvas');
-    const isPlaying =
-      pongCanvas?.getAttribute('data-captured') === 'true' ||
-      questCanvas?.getAttribute('data-captured') === 'true';
+    const isPlaying = pongCanvas?.getAttribute('data-captured') === 'true';
     if (isPlaying) {
       state.invalidate();
     }
@@ -439,24 +427,18 @@ export function Engine({ pongGameQuad, pixelQuestGameQuad }: EngineProps = {}) {
       />
       <instancedMesh
         ref={playVolumeMatcapRef}
-        args={[openBoxGeo, matcapMaterial, 2]}
+        args={[openBoxGeo, matcapMaterial, 1]}
       />
 
-      {/* Play volume wireframe overlays (2 instanced wireframes) */}
+      {/* Play volume wireframe overlay (1 instanced wireframe) */}
       <instancedMesh
         ref={playVolumeWireframeRef}
-        args={[openBoxGeo, wireframeMaterial, 2]}
+        args={[openBoxGeo, wireframeMaterial, 1]}
       />
-      {/* Phase 5 seams: Game CanvasTexture quads mounted inside volumes at floor level */}
+      {/* Phase 5 seams: Game CanvasTexture quad mounted inside volume at floor level */}
       <group position={[-3, -124 - 0.79, 0]} ref={toInterior}>
         {pongGameQuad ?? (
           <GameVolumeQuad canvasId="game-mount-pong-canvas" fallbackColor="#10151C" />
-        )}
-      </group>
-
-      <group position={[3, -134 - 0.79, 0]} ref={toInterior}>
-        {pixelQuestGameQuad ?? (
-          <GameVolumeQuad canvasId="game-mount-pixel-quest-canvas" fallbackColor="#10151C" />
         )}
       </group>
 

@@ -285,3 +285,5 @@ What changed is that measurement tooling stopped counting legacy polyfills brows
 - **Modal Accessibility**: On `/project/gamezone.html`, `.detail-panel` has `role="dialog"`, `aria-modal="true"`; focus lands on `H2#panel-heading-gamezone`; Tab is trapped inside panel; `Esc` key closes panel and returns focus to `BODY`/trigger; all 18 top-level body siblings receive `inert` while open and `inert` is removed from all 18 when closed; closed panel has 0 tab stops.
 - **Reduced Motion**: Under `html[data-motion="off"]` and `@media (prefers-reduced-motion: reduce)`, transform is forced to `none !important` and `transition-duration` to `0s !important` (opacity-only 0 ms transition).
 - **Rapid Sequence**: Executed rapid `open` → `close` → `open` within 50 ms. Panel recovers cleanly to `wrapperClass: "detail-panel-wrapper open"`, mounted, with full reparented `#deployment-platform` article present and non-blank.
+
+*Deviation note (2026-09-09): Pixel Quest removed at owner's explicit request. Next build route count dropped from 17 to 16 static routes. Vitest engine suite dropped from 6 passed tests to 3 passed tests (`src/engine/loop.test.ts`).*

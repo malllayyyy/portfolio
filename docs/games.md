@@ -129,3 +129,7 @@ However, two active, complete from-scratch JavaScript/HTML5 Canvas game engines 
 
 ### Portfolio Verdict
 **Honest Verdict**: A well-structured top-down 2D RPG room engine featuring axis-separated AABB collision, diagonal movement velocity normalization, dynamic multiline text wrapping, and interactive quest/dialogue triggers.
+
+---
+
+*Deviation note (2026-09-09): Pixel Quest was removed at the owner's explicit request. Pong remains as the sole playable Canvas 2D engine in the portfolio.*
