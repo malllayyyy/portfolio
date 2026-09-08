@@ -5,7 +5,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import gsap from 'gsap';
 import { Color } from 'three';
 import type { AmbientLight, DirectionalLight, FogExp2, PointLight } from 'three';
-
 const FOG_TABLE = [
   { y: 6.0, color: new Color('#1A2430'), density: 0.012 },
   { y: -12.0, color: new Color('#171A1E'), density: 0.018 },
@@ -48,8 +47,8 @@ function getFogAtY(y: number, outColor: Color): number {
 }
 
 function getDirectionalIntensityAtY(y: number): number {
-  if (y >= 0) return 2.4;
-  if (y >= -150) return 2.4 + (y / -150) * (0.15 - 2.4);
+  if (y >= 0) return 0.9;
+  if (y >= -150) return 0.9 + (y / -150) * (0.15 - 0.9);
   if (y >= -260) return 0.15 + ((y + 150) / -110) * (0 - 0.15);
   return 0;
 }
@@ -63,7 +62,6 @@ function getLayerIndex(y: number): number {
 
 export function Fog() {
   const { camera, gl } = useThree();
-
   const fogRef = useRef<FogExp2>(null);
   const dirLightRef = useRef<DirectionalLight>(null);
   const pointLightRef = useRef<PointLight>(null);
@@ -73,7 +71,6 @@ export function Fog() {
 
   useFrame(() => {
     const cameraY = camera.position.y;
-
     // 1. Fog color & density + setClearColor
     const density = getFogAtY(cameraY, tempFogColor);
 
@@ -95,7 +92,6 @@ export function Fog() {
       dirLightRef.current.target.updateMatrixWorld();
       dirLightRef.current.intensity = getDirectionalIntensityAtY(cameraY);
     }
-
     // 4. Point light position & layer accent color transition
     if (pointLightRef.current) {
       pointLightRef.current.position.set(0, cameraY - 3.0, 0);

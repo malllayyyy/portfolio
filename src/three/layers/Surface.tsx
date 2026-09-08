@@ -126,10 +126,10 @@ export function Surface() {
 
   return (
     <group>
-      {/* 1. Strata ceiling at y = 0 facing down (1 draw call) */}
+      {/* 1. Strata ceiling at y = 0.1 facing down (1 draw call) */}
       <mesh
         ref={toLayer(EXTERIOR)}
-        position={[0, 0, 0]}
+        position={[0, 0.1, 0]}
         rotation={[Math.PI / 2, 0, 0]}
       >
         <planeGeometry args={[240, 240, 1, 1]} />
@@ -149,7 +149,7 @@ export function Surface() {
           <meshPhysicalMaterial
             transmission={0.9}
             thickness={0.4}
-            roughness={0.08}
+            roughness={0.22}
             ior={1.45}
             color="#EDF1F5"
             transparent
@@ -158,7 +158,7 @@ export function Surface() {
           <meshStandardMaterial
             opacity={0.55}
             transparent
-            roughness={0.08}
+            roughness={0.22}
             color="#EDF1F5"
           />
         )}
@@ -171,7 +171,7 @@ export function Surface() {
           <meshPhysicalMaterial
             transmission={0.9}
             thickness={0.4}
-            roughness={0.08}
+            roughness={0.22}
             ior={1.45}
             color="#EDF1F5"
             transparent
@@ -180,7 +180,7 @@ export function Surface() {
           <meshStandardMaterial
             opacity={0.55}
             transparent
-            roughness={0.08}
+            roughness={0.22}
             color="#EDF1F5"
           />
         )}
