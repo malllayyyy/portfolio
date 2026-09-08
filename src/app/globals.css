@@ -146,3 +146,30 @@ canvas[data-game][data-captured="true"]:focus {
   outline: 2px solid var(--color-surface-accent);
   outline-offset: 3px;
 }
+
+/* Task 5.4 — Detail panel rules (§ 4.1, § 9.1, § 9.3) */
+.detail-panel-wrapper {
+  position: relative;
+  z-index: 50;
+}
+
+.detail-panel-wrapper.closed {
+  content-visibility: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.detail-panel-wrapper.open {
+  content-visibility: visible;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.detail-panel {
+  background-color: #10151C;
+  color: var(--color-light);
+  overscroll-behavior: contain;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

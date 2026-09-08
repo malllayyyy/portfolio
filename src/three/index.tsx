@@ -49,10 +49,17 @@ export default function CanvasContainer() {
   }, []);
 
   useEffect(() => {
-    const read = () => setReduced(document.documentElement.dataset.motion === 'off');
+    const read = () =>
+      setReduced(
+        document.documentElement.dataset.motion === 'off' ||
+          !!document.documentElement.dataset.panel
+      );
     read();
     const obs = new MutationObserver(read);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-motion', 'data-panel'],
+    });
     return () => obs.disconnect();
   }, []);
 

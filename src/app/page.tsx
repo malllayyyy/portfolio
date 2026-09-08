@@ -7,6 +7,7 @@ import { PortraitSlot } from '@/components/PortraitSlot';
 import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
 import { SceneMount } from '@/components/SceneMount';
+import { DetailPanel } from '@/components/DetailPanel';
 import { LAYERS } from '@/content/layers';
 import { PROJECTS } from '@/content/projects';
 import { SITE } from '@/content/site';
@@ -58,6 +59,7 @@ export function Descent() {
           </div>
         </section>
       </main>
+      <DetailPanel />
     </>
   );
 }
