@@ -1,4 +1,5 @@
 import { SkipLink } from '@/components/SkipLink';
+import { DepthGauge } from '@/components/DepthGauge';
 import { Hero } from '@/components/Hero';
 import { LayerSection } from '@/components/LayerSection';
 import { ProjectArticle } from '@/components/ProjectArticle';
@@ -15,6 +16,7 @@ export function Descent() {
     <>
       <SceneMount />
       <SkipLink />
+      <DepthGauge />
       <Hero />
       <main className="relative min-h-[900vh]">
         {LAYERS.filter((l) => l.id !== 'bedrock').map((layer) => (
