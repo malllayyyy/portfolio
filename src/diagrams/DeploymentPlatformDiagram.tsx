@@ -3,11 +3,9 @@ export function DeploymentPlatformDiagram() {
     <figure className="m-0">
       <svg
         viewBox="0 0 960 560"
-        width="100%"
-        height="auto"
         role="img"
         aria-labelledby="dp-title dp-desc"
-        className="border border-hairline bg-strata"
+        className="w-full h-auto border border-hairline bg-strata"
       >
         <title id="dp-title">{/* <title> */}deployment-platform: one deploy, end to end</title>
         <desc id="dp-desc">
