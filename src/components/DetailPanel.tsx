@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useOpenPanel, setPanel } from '@/lib/store';
 import { projectBySlug } from '@/content/projects';
 import { ROUTES } from '@/content/routes';
-import { ProjectArticle } from './ProjectArticle';
 import { getMotion, subscribeMotion } from '@/lib/motion-pref';
 
 export function DetailPanel() {
@@ -14,7 +13,10 @@ export function DetailPanel() {
   const triggerRef = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const panelBodyRef = useRef<HTMLDivElement | null>(null);
   const prevOpenSlug = useRef<string | null>(null);
+  const [isExited, setIsExited] = useState<boolean>(!openSlug);
+  const [reparentedSlug, setReparentedSlug] = useState<string | null>(null);
 
   // Motion preference tracking
   useEffect(() => {
@@ -37,6 +39,36 @@ export function DetailPanel() {
   }, []);
 
   const project = openSlug ? projectBySlug(openSlug) : null;
+
+  // Sync reparented slug and exited status when openSlug changes
+  useEffect(() => {
+    if (openSlug && project) {
+      setIsExited(false);
+      setReparentedSlug(openSlug);
+    }
+  }, [openSlug, project]);
+
+  // DOM Reparenting: move project article from <main> to panel while open, restore on close
+  useEffect(() => {
+    if (!reparentedSlug) return;
+    const articleEl = document.getElementById(reparentedSlug);
+    const bodyContainer = panelBodyRef.current;
+    if (!articleEl || !bodyContainer) return;
+
+    const placeholder = document.createComment(`placeholder-${reparentedSlug}`);
+    const parentNode = articleEl.parentNode;
+    if (parentNode) {
+      parentNode.insertBefore(placeholder, articleEl);
+      bodyContainer.appendChild(articleEl);
+    }
+
+    return () => {
+      if (placeholder.parentNode && articleEl) {
+        placeholder.parentNode.insertBefore(articleEl, placeholder);
+        placeholder.remove();
+      }
+    };
+  }, [reparentedSlug]);
 
   // Panel closing function
   const handleClose = useCallback(() => {
@@ -85,11 +117,17 @@ export function DetailPanel() {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
 
-        // Apply inert to main page landmarks and canvas (G5.5)
-        const targets = document.querySelectorAll(
-          'main, nav, footer, #scene-mount, [aria-label="Depth navigation"]'
-        );
-        targets.forEach((el) => el.setAttribute('inert', ''));
+        // Apply inert to all non-panel direct children of body (G5.5)
+        const bodyChildren = Array.from(document.body.children);
+        bodyChildren.forEach((child) => {
+          if (
+            panelRef.current &&
+            !child.contains(panelRef.current) &&
+            child !== panelRef.current.parentElement
+          ) {
+            child.setAttribute('inert', '');
+          }
+        });
 
         // Update title and live region announcer (§ 9.3)
         const route = ROUTES.find((r) => r.openPanel === openSlug);
@@ -183,15 +221,16 @@ export function DetailPanel() {
   };
 
   const isVisible = !!openSlug && !!project;
+  const wrapperClass = isVisible ? 'open' : isExited ? 'closed' : 'exiting';
 
   return (
-    <div
-      className={`detail-panel-wrapper ${isVisible ? 'open' : 'closed'}`}
-      style={{
-        contentVisibility: isVisible ? 'visible' : 'hidden',
-      }}
-    >
-      <AnimatePresence>
+    <div className={`detail-panel-wrapper ${wrapperClass}`}>
+      <AnimatePresence
+        onExitComplete={() => {
+          setIsExited(true);
+          setReparentedSlug(null);
+        }}
+      >
         {isVisible && project && (
           <motion.div
             ref={panelRef}
@@ -226,17 +265,17 @@ export function DetailPanel() {
                 type="button"
                 onClick={handleClose}
                 aria-label="Close detail panel"
-                className="flex items-center gap-2 rounded border border-hairline bg-[#0E1116] px-3 py-1.5 font-mono text-t-xs text-muted hover:border-light hover:text-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8FD3FF]"
+                className="flex items-center gap-2 rounded border border-hairline bg-[#0E1116] px-3 py-1.5 font-mono text-t-xs text-muted hover:border-light hover:text-light transition-colors focus-visible:outline-2 focus-visible:outline-[#8FD3FF] focus-visible:outline-offset-3"
               >
                 <span className="hidden sm:inline text-muted/80">Esc</span>
-                <span aria-hidden="true" className="text-t-sm font-bold">✕</span>
+                <span aria-hidden="true" className="text-t-sm font-bold">
+                  ✕
+                </span>
               </button>
             </div>
 
-            {/* Panel Body: ProjectArticle */}
-            <div className="flex-1">
-              <ProjectArticle project={project} />
-            </div>
+            {/* Panel Body: Portaled ProjectArticle */}
+            <div ref={panelBodyRef} className="flex-1" />
           </motion.div>
         )}
       </AnimatePresence>

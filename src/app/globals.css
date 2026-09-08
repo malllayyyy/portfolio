@@ -165,6 +165,12 @@ canvas[data-game][data-captured="true"]:focus {
   visibility: visible;
 }
 
+.detail-panel-wrapper.exiting {
+  content-visibility: visible;
+  pointer-events: none;
+  visibility: visible;
+}
+
 .detail-panel {
   background-color: #10151C;
   color: var(--color-light);
