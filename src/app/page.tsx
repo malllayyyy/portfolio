@@ -5,6 +5,7 @@ import { ProjectArticle } from '@/components/ProjectArticle';
 import { PortraitSlot } from '@/components/PortraitSlot';
 import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
+import { SceneMount } from '@/components/SceneMount';
 import { LAYERS } from '@/content/layers';
 import { PROJECTS } from '@/content/projects';
 import { SITE } from '@/content/site';
@@ -12,9 +13,10 @@ import { SITE } from '@/content/site';
 export function Descent() {
   return (
     <>
+      <SceneMount />
       <SkipLink />
       <Hero />
-      <main>
+      <main className="relative min-h-[900vh]">
         {LAYERS.filter((l) => l.id !== 'bedrock').map((layer) => (
           <LayerSection key={layer.id} layer={layer}>
             {PROJECTS.filter((p) => p.layer === layer.id).map((p) => (

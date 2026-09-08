@@ -178,7 +178,7 @@ export function Rig() {
     <PerspectiveCamera
       makeDefault
       fov={55}
-      near={0.1}
+      near={0.02}
       far={420}
       up={[0, 0, -1]}
       position={[0, 6, 0]}
