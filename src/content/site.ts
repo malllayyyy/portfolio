@@ -1,5 +1,5 @@
-/** OQ1 resolved: malaychaudhary.dev. Runs on .vercel.app until the Phase 6 cutover. */
-export const SITE_URL = 'https://substrate-malay.vercel.app';
+/** OQ1 resolved: malaychaudhary.dev. Phase 6 cutover. */
+export const SITE_URL = 'https://malaychaudhary.dev';
 export const FINAL_DOMAIN = 'https://malaychaudhary.dev';
 
 export const SITE = {

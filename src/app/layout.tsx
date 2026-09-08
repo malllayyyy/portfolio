@@ -19,6 +19,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: SITE.name,
+    url: SITE_URL,
+    email: SITE.email,
+    alumniOf: {
+      '@type': 'EducationalOrganization',
+      name: 'IIIT Naya Raipur',
+    },
+    sameAs: [SITE.github, SITE.linkedin],
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: `${SITE.name} — Substrate`,
+    url: SITE_URL,
+  };
+
   return (
     <html lang="en">
       <head>
@@ -30,6 +50,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="/fonts/Satoshi-Variable.subset.woff2"
         />
         <meta name="theme-color" content="#06080B" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
       <body>
         <TierBoot />
