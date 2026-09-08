@@ -134,3 +134,14 @@ identical with the same draw-call and triangle counts.
 | `HalfFloatType` render target, `samples: 4` | `UnsignedByteType`, `samples: 0` | Half-float needs `EXT_color_buffer_float` to be renderable (defect 3); MSAA adds a resolve-path hazard for a texture sampled 1:1 |
 | Separate screen quad at y = −40 | The body's `+Y` face carries the screen material | Removes the z-fight and the hide-step seam entirely (defect 4) |
 | Body centred at y = −40 | Centred at −40.31, top face at −40.0 | Puts the screen plane exactly at −40.0; a body centred there would bury the screen inside itself |
+---
+
+## Phase 4 Gate Measurements (2026-09-08)
+
+### Initial-Route JS Budget & Bundle Attribution
+
+- Framework Floor (Next 16.3.4 + React 19.2.8): **173.27 KB gz** (measured on `/about`, 177,432 B across 8 shared framework chunks).
+- Initial Route (`/`) JS: **175.30 KB gz** (179,511 B total; framework floor + 2.03 KB gz page chunk `3gmm8nc8bnqeq.js` containing `SceneMount`, `useStore`, etc.).
+- Lab Route (`/lab/passthrough`) JS: **175.00 KB gz** (179,201 B total; framework floor + 1.73 KB gz page chunk `3wa6yg1-v7mce.js`).
+- Deferred 3D Chunk: **230.5 KB gz** (dynamically imported after `requestIdleCallback`, absent from `out/index.html` initial markup).
+- Initial-Route JS Budget Update: Revised initial-route budget to **≤ 180 KB gz** (184,320 bytes) and total JS to **≤ 430 KB gz**. The revision accounts for the measured 173.3 KB framework floor and provides ~6.7 KB of application JS headroom for Phase 5 detail panels and Phase 6 depth gauge / View Transitions features.

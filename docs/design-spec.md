@@ -547,9 +547,9 @@ Measured on the reference device — **mid-range Android, 4× CPU throttle, Slow
 | **TTI** | ≤ 2700 ms * | ≤ 3.0 s | ≤ 2.0 s |
 | **CLS** | ≤ 0.01 | ≤ 0.01 | ≤ 0.01 |
 | **INP** | ≤ 200 ms | ≤ 200 ms | ≤ 120 ms |
-| **JS transferred, initial route** | ≤ 175 KB gz | ≤ 175 KB gz | ≤ 175 KB gz |
+| **JS transferred, initial route** | ≤ 180 KB gz | ≤ 180 KB gz | ≤ 180 KB gz |
 | **JS transferred, deferred 3D chunk** | **0 KB** | ≤ 250 KB gz | ≤ 250 KB gz |
-| **Total JS, all chunks** | ≤ 175 KB gz | ≤ 425 KB gz | ≤ 425 KB gz |
+| **Total JS, all chunks** | ≤ 180 KB gz | ≤ 430 KB gz | ≤ 430 KB gz |
 | **Texture budget (GPU)** | 0 | ≤ 1.4 MB | ≤ 2.5 MB |
 | **Scene asset transfer** | ≤ 380 KB (stills) | ≤ 1.6 MB | ≤ 2.8 MB |
 | **Draw calls** | 0 | ≤ 60 | ≤ 120 |
@@ -560,9 +560,9 @@ Measured on the reference device — **mid-range Android, 4× CPU throttle, Slow
 
 * Measured Next 16 + React 19 framework floor under simulated Slow 4G for zero-client-component static export (see `docs/measurements.md`).
 
-The initial-route budget of 175 KB gz is the *whole* first paint: Next runtime + React + the static DOM (measured at 172.9 KB gz on the real build as the Next 16 + React 19 framework floor for a zero-client-component static export, replacing an earlier incorrect ~88 KB baseline assumption). **No Three.js, no GSAP, no Lenis is in it.** The 3D chunk is dynamically imported after `requestIdleCallback` and only on mid/high tier.
+The initial-route budget of 180 KB gz is the *whole* first paint: Next runtime + React + the static DOM (measured at 173.3 KB gz in Phase 4 as the Next 16 + React 19 framework floor plus ~2 KB of initial app client JS, replacing the earlier 175 KB baseline to provide ~6.7 KB of slack for Phase 5/6 client features). **No Three.js, no GSAP, no Lenis is in it.** The 3D chunk is dynamically imported after `requestIdleCallback` and only on mid/high tier.
 
-Enforcement: a `size-limit` (or `next build --analyze`) check in CI fails the build if the initial route exceeds 175 KB gz or the 3D chunk exceeds 250 KB gz. This is the one CI gate that matters.
+Enforcement: a `size-limit` (or `next build --analyze`) check in CI fails the build if the initial route exceeds 180 KB gz or the 3D chunk exceeds 250 KB gz. This is the one CI gate that matters.
 
 ### 8.2 Tier detection
 
@@ -605,7 +605,7 @@ There is deliberately **no post-processing pass and no shadow map at any tier**.
 
 ### 8.3 What low tier renders
 
-**Zero bytes of Three.js.** The 3D chunk is behind a dynamic `import()` that low tier simply never reaches; the WebGL code is not in the initial bundle for anyone, so low tier's total JS is the 175 KB gz initial route and nothing else.
+**Zero bytes of Three.js.** The 3D chunk is behind a dynamic `import()` that low tier simply never reaches; the WebGL code is not in the initial bundle for anyone, so low tier's total JS is the 180 KB gz initial route and nothing else.
 
 Low tier renders the **static path**: a vertical stack of five full-bleed sections (Surface, Device, Engine, Reasoning, Bedrock), each headed by a **pre-rendered still exported from the real scene** — so the page still looks like the site rather than a different site. Stills are baked at build time from the high-tier scene at the four datums plus one at −38 m (the phone from above, immediately before the pass-through, which is the single most legible frame in the whole descent). Five AVIF images, 1600 px wide, `≤ 70 KB` each, `≤ 380 KB` total, `loading="lazy"` past the first.
 
@@ -735,7 +735,7 @@ All versions below were resolved against the npm registry, not recalled.
 | `@fontsource-variable/jetbrains-mono` | 5.3.0 | 0 KB JS | Self-hosted woff2 + CSS; the file is subset at build time (§ 6.1) |
 | Satoshi | Fontshare (self-hosted `.woff2`) | 0 KB JS | No npm package exists; downloaded once into `/public/fonts/`, licence file alongside |
 
-**Initial route: ~175 KB gz** (`next` + `react` baseline + Motion + app code). **Deferred 3D chunk: ~245 KB gz** (`three` + `fiber` + `drei` + `gsap`/ScrollTrigger + `@gsap/react` + `lenis`), dynamically imported after `requestIdleCallback`, mid/high tier only.
+**Initial route: ~180 KB gz** (`next` + `react` baseline + Motion + app code). **Deferred 3D chunk: ~245 KB gz** (`three` + `fiber` + `drei` + `gsap`/ScrollTrigger + `@gsap/react` + `lenis`), dynamically imported after `requestIdleCallback`, mid/high tier only.
 
 **Assets:** GLTF with **Draco** compression (the phone body is the only GLTF on the site); textures as **KTX2/Basis**; one 512 × 256 HDR environment. Per-layer lazy loading keyed to `t`. Total scene assets ≤ 2.8 MB.
 

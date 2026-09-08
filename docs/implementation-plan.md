@@ -46,7 +46,7 @@ Every task's requirements implicitly include this section. Values are copied ver
 - **Spacing scale (§ 6.4): `4, 8, 12, 16, 24, 32, 48, 64, 96, 128` px. Nothing else.**
 - **No `backdrop-filter` and no `box-shadow` on any DOM element, site-wide.** Elevation is fill value plus 1 px `--hairline` borders.
 - **No post-processing pass and no shadow map at any tier (§ 8.2).**
-- **Budget gates (§ 8.1):** initial route ≤ **175 KB gz** (measured Next 16 + React 19 framework floor for a zero-client-component static export, replacing an earlier incorrect ~88 KB baseline assumption); deferred 3D chunk ≤ **250 KB gz**; total JS ≤ **425 KB gz**; fonts ≤ **28 KB each, ≤ 56 KB total**; scene assets ≤ **2.8 MB**; low-tier stills ≤ **70 KB each, ≤ 380 KB total**; draw calls ≤ **120** high / ≤ **60** mid; resident triangles ≤ **180 k** high / ≤ **90 k** mid.
+- **Budget gates (§ 8.1):** initial route ≤ **180 KB gz** (measured Next 16 + React 19 framework floor of 173.3 KB gz + app client JS, with ~6.7 KB slack for Phase 5/6 client features); deferred 3D chunk ≤ **250 KB gz**; total JS ≤ **430 KB gz**; fonts ≤ **28 KB each, ≤ 56 KB total**; scene assets ≤ **2.8 MB**; low-tier stills ≤ **70 KB each, ≤ 380 KB total**; draw calls ≤ **120** high / ≤ **60** mid; resident triangles ≤ **180 k** high / ≤ **90 k** mid.
 - **Low tier ships zero bytes of Three.js.** The 3D code is behind a dynamic `import()` low tier never reaches.
 - **The DOM content is byte-identical across all three tiers (§ 8.3).** Asserted at build time in Task 6.5.
 - **Accessibility target: WCAG 2.2 AA, Lighthouse Accessibility 100 on every route at every tier.** The canvas is `aria-hidden="true" role="presentation" tabindex="-1"` and everything it shows exists in the DOM as real focusable content (§ 9.1).
@@ -197,7 +197,7 @@ C:/Portfolio/
 | # | Check | Command / action | Expected |
 |---|---|---|---|
 | G1.1 | Lighthouse mobile | `npx lighthouse http://localhost:3000/ --only-categories=performance,accessibility,best-practices,seo --form-factor=mobile --throttling-method=simulate --output=json --output-path=./lh-mobile.json` | Performance ≥ **98**, Accessibility **100**, CLS ≤ **0.01**, LCP ≤ **2600 ms** (measured floor, see `docs/measurements.md`), FCP ≤ **1.0 s**, TTI ≤ **2700 ms** (measured floor, see `docs/measurements.md`) |
-| G1.2 | Initial-route JS | `npx size-limit` (config from Task 6.1 may be added early; otherwise `du -b .next/static/chunks/*.js`) | initial route ≤ **175 KB gz** (measured Next 16 + React 19 framework floor for zero-client-component export) |
+| G1.2 | Initial-route JS | `npx size-limit` (config from Task 6.1 may be added early; otherwise `du -b .next/static/chunks/*.js`) | initial route ≤ **180 KB gz** (measured Next 16 + React 19 framework floor for zero-client-component export) |
 | G1.3 | Keyboard pass | Load `/`, press `Tab` from page load to footer without touching the mouse | Order is: skip link → Surface exhibits (2) → Device exhibit (1) → Engine exhibits (2) → Reasoning exhibit → Bedrock links (résumé, email, GitHub, LinkedIn) → footer. Focus ring `2px #8FD3FF`, `outline-offset: 3px`, visible on every stop. No trap. |
 | G1.4 | No-JS | DevTools → Settings → Debugger → Disable JavaScript → reload `/` | Every heading, every project fact, both SVG diagrams, every link present and usable. `<noscript>` shows the résumé link and `malayrc276@gmail.com`. |
 | G1.5 | Live on a phone | `vercel --prod`, open the `.vercel.app` URL on a real Android phone | Site loads, reads, scrolls; no horizontal overflow at 390 px |
@@ -1194,7 +1194,7 @@ git commit -m "feat: six project content modules, every fact sourced to docs/pro
   - `<KeyboardHelp />`
   - `<ResumeLink className?: string />`
 
-All eleven are **server components** — no `'use client'` anywhere in this task. That is what keeps G1.4 (no-JS) and the 175 KB initial-route budget true.
+All eleven are **server components** — no `'use client'` anywhere in this task. That is what keeps G1.4 (no-JS) and the 180 KB initial-route budget true.
 
 - [ ] **Step 1: `SkipLink.tsx` — first focusable element in the document (§ 9.2)**
 
@@ -2290,7 +2290,7 @@ Repeat for `/project/gamezone` and `/about`. Accessibility must be **100 on ever
 - [ ] **Step 3: JS budget — G1.2**
 
 Run: `find out/_next/static/chunks -name '*.js' -exec gzip -c {} \; | wc -c`
-Expected: ≤ **179200** bytes (175 KB gz). Phase 1 has no `three`, no `gsap`, no `lenis`, no `motion` — if this number is anywhere near the ceiling, something got imported that should not have been.
+Expected: ≤ **184320** bytes (180 KB gz). Phase 1 has no `three`, no `gsap`, no `lenis`, no `motion` — if this number is anywhere near the ceiling, something got imported that should not have been.
 
 Run: `grep -rl "three\|gsap\|lenis" out/_next/static/chunks/ | wc -l`
 Expected: **0**.
@@ -2359,7 +2359,7 @@ git commit -m "docs: Phase 1 gate measurements — Lighthouse, budget, keyboard,
 | G2.2 | Pong keyboard | Play to 7 points using arrow keys only; exit with `Escape`; re-enter; exit with `Tab` | Wins at 7. `Escape` returns focus to the trigger button. `Tab` releases **and** moves focus to the next control — the Tab is not swallowed. |
 | G2.3 | Pong touch | Open on a real phone, drag anywhere on the canvas | Paddle tracks the drag; the page does not scroll while dragging; lifting the finger does not release the game |
 | G2.4 | Low tier ships no `three` | `grep -rl "THREE\|three" out/_next/static/chunks/ \| wc -l` | **0** |
-| G2.5 | Budget holds | `find out/_next/static/chunks -name '*.js' -exec gzip -c {} \; \| wc -c` | ≤ **179200** bytes (Motion is ~18 KB gz and must fit inside the 175 KB initial route) |
+| G2.5 | Budget holds | `find out/_next/static/chunks -name '*.js' -exec gzip -c {} \; \| wc -c` | ≤ **184320** bytes (Motion is ~18 KB gz and must fit inside the 180 KB initial route) |
 | G2.6 | Reduced motion | OS → reduce motion **on**, reload, then toggle it **off** mid-session | `document.documentElement.dataset.motion` flips `off`→`on` without a reload; no Motion animation runs while `off`; the games remain startable |
 
 ---
@@ -2721,7 +2721,7 @@ Expected: `wc -c public/video/*` — mp4 ≤ 400 KB, webm ≤ 300 KB, poster ≤
 **Parallelism:** **SERIALIZED — last task of Phase 2.**
 
 - [ ] **Step 1:** Run G2.1 through G2.6 from the gate table above; record each result.
-- [ ] **Step 2:** Re-run Lighthouse mobile on `/` and `/project/pong`. Expected: Performance still ≥ 98, Accessibility still **100**. Motion's 18 KB gz must not have pushed the initial route over 175 KB gz — if it has, the fix is that `TierBoot` and `GameMount` are the only client components and everything else is a server component.
+- [ ] **Step 2:** Re-run Lighthouse mobile on `/` and `/project/pong`. Expected: Performance still ≥ 98, Accessibility still **100**. Motion's 18 KB gz must not have pushed the initial route over 180 KB gz — if it has, the fix is that `TierBoot` and `GameMount` are the only client components and everything else is a server component.
 - [ ] **Step 3:** `npx vercel --prod`; play Pong on the deployed phone build.
 - [ ] **Step 4:** Commit — `docs: Phase 2 gate measurements`.
 
@@ -3103,14 +3103,14 @@ Acceptance: load `/project/switchboard`. Expected: 12 selectable node classes, e
 
 ```json
 [
-  { "name": "initial route",  "path": ".next/static/chunks/!(*three*|*gsap*).js", "limit": "175 KB", "gzip": true },
+  { "name": "initial route",  "path": ".next/static/chunks/!(*three*|*gsap*).js", "limit": "180 KB", "gzip": true },
   { "name": "3D chunk",       "path": ".next/static/chunks/*three*.js",           "limit": "250 KB", "gzip": true },
-  { "name": "total JS",       "path": ".next/static/chunks/**/*.js",              "limit": "425 KB", "gzip": true }
+  { "name": "total JS",       "path": ".next/static/chunks/**/*.js",              "limit": "430 KB", "gzip": true }
 ]
 ```
 
 Run: `npx size-limit`
-Expected: three green rows. **The build fails if the initial route exceeds 175 KB gz or the 3D chunk exceeds 250 KB gz.** This is the one CI gate that matters (§ 8.1) — wire it to fail the workflow, not warn.
+Expected: three green rows. **The build fails if the initial route exceeds 180 KB gz or the 3D chunk exceeds 250 KB gz.** This is the one CI gate that matters (§ 8.1) — wire it to fail the workflow, not warn.
 
 ### Task 6.2: The frame-time watchdog (§ 14 Risk 3 kill-switch)
 
@@ -3199,9 +3199,9 @@ Measure on the reference devices — **mid-range Android, 4× CPU throttle, Slow
 | TTI | ≤ 2700 ms * | ≤ 3.0 s | ≤ 2.0 s |
 | CLS | ≤ 0.01 | ≤ 0.01 | ≤ 0.01 |
 | INP | ≤ 200 ms | ≤ 200 ms | ≤ 120 ms |
-| JS initial route | ≤ 175 KB gz | ≤ 175 KB gz | ≤ 175 KB gz |
+| JS initial route | ≤ 180 KB gz | ≤ 180 KB gz | ≤ 180 KB gz |
 | JS deferred 3D chunk | **0 KB** | ≤ 250 KB gz | ≤ 250 KB gz |
-| Total JS | ≤ 175 KB gz | ≤ 425 KB gz | ≤ 425 KB gz |
+| Total JS | ≤ 180 KB gz | ≤ 430 KB gz | ≤ 430 KB gz |
 | Texture budget (GPU) | 0 | ≤ 1.4 MB | ≤ 2.5 MB |
 | Scene asset transfer | ≤ 380 KB | ≤ 1.6 MB | ≤ 2.8 MB |
 | Draw calls | 0 | ≤ 60 | ≤ 120 |

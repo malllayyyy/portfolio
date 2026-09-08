@@ -34,23 +34,12 @@ function computeT(): number {
 }
 
 function updateState(partial: Partial<StoreState>): void {
-  const nextT = partial.t !== undefined ? partial.t : currentSnapshot.t;
-  const nextTier = partial.tier !== undefined ? partial.tier : currentSnapshot.tier;
-  const nextPanel = partial.panel !== undefined ? partial.panel : currentSnapshot.panel;
+  const nextT = partial.t ?? currentSnapshot.t;
+  const nextTier = partial.tier ?? currentSnapshot.tier;
+  const nextPanel = 'panel' in partial ? partial.panel! : currentSnapshot.panel;
 
-  if (
-    nextT === currentSnapshot.t &&
-    nextTier === currentSnapshot.tier &&
-    nextPanel === currentSnapshot.panel
-  ) {
-    return;
-  }
-
-  currentSnapshot = {
-    t: nextT,
-    tier: nextTier,
-    panel: nextPanel,
-  };
+  if (nextT === currentSnapshot.t && nextTier === currentSnapshot.tier && nextPanel === currentSnapshot.panel) return;
+  currentSnapshot = { t: nextT, tier: nextTier, panel: nextPanel };
   notify();
 }
 
