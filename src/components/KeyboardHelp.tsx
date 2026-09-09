@@ -4,6 +4,7 @@ export function KeyboardHelp() {
   // - 1 – 4, ↑ / ↓, Home / End: Phase 4 (3D camera depth navigation)
   const rows: [string, string][] = [
     ['Tab', 'move through every exhibit in depth order'],
+    ['Cmd/Ctrl+K', 'jump to any layer or project by name'],
   ];
   return (
     <div>

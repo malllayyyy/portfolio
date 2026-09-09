@@ -635,7 +635,7 @@ A visitor completes the entire site with `Tab` and `Enter`. No exceptions, no mo
 
 - **Tab order** = document order = depth order. Skip link → depth-gauge stops (4) → Surface exhibits (2) → Device exhibit (1) → Engine exhibits (2, each "Play …") → Reasoning exhibit + trace steps → Bedrock (résumé, email, GitHub, LinkedIn) → footer tier toggle.
 - **Focusing any exhibit proxy scrolls the document to that exhibit's depth**, using `scroll-behavior: smooth` (or `auto` under reduced motion). Focus never lands somewhere the camera is not.
-- **Shortcuts (single keys, active only when focus is on `<body>` or a non-input element):** `1`–`4` jump to layer datums, `↑`/`↓` step ±10 m, `Home`/`End` to Surface/Bedrock. All are additive; the site is complete without them. They are listed in a static "Keyboard" block on the Bedrock section — no modal, no `⌘K` palette (non-goal 9).
+- **Shortcuts (single keys, active only when focus is on `<body>` or a non-input element):** `1`–`4` jump to layer datums, `↑`/`↓` step ±10 m, `Home`/`End` to Surface/Bedrock. All are additive; the site is complete without them. They are listed in a static "Keyboard" block on the Bedrock section. *Deviation note (2026-09-09): Added a `Cmd+K` / `Ctrl+K` depth palette at the owner's explicit request, superseding the original 'no ⌘K palette' clause. The palette lists all 10 depths in metres (5 layers, 5 projects), filters by name/layer, and activates via Enter (`Esc` closes, `↑`/`↓` highlight, trapped focus, suppressed when a detail panel, input element, or captured game canvas is active).*
 - **No key is ever swallowed** outside an explicitly captured game canvas (§ 5.3), and even there `Tab` and `Escape` always work.
 
 ### 9.3 Focus management

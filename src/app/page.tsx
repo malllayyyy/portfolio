@@ -8,6 +8,7 @@ import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
 import { SceneMount } from '@/components/SceneMount';
 import { DeferredOverlays } from '@/components/DeferredOverlays';
+import { PaletteKey } from '@/components/PaletteKey';
 import { ExhibitProxyNav } from '@/three/exhibit-state';
 import { LAYERS } from '@/content/layers';
 import { PROJECTS } from '@/content/projects';
@@ -25,6 +26,9 @@ export function Descent() {
       <SceneMount />
       <SkipLink />
       <ExhibitProxyNav
+        exhibits={PROJECTS.map((p) => ({ slug: p.slug, title: p.title, depth: p.depth }))}
+      />
+      <PaletteKey
         exhibits={PROJECTS.map((p) => ({ slug: p.slug, title: p.title, depth: p.depth }))}
       />
       <DepthGauge />
