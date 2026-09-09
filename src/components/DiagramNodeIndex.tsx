@@ -17,6 +17,8 @@ export function DiagramNodeIndex({ id }: DiagramNodeIndexProps) {
           const entry = SNIPPETS[nodeId];
           if (!entry) return null;
 
+          const isQuotedCode = entry.code !== null;
+
           return (
             <details
               key={nodeId}
@@ -31,22 +33,45 @@ export function DiagramNodeIndex({ id }: DiagramNodeIndexProps) {
                     ({entry.path})
                   </span>
                 </span>
-                <span
-                  aria-hidden="true"
-                  className="text-t-xs text-muted font-normal group-open:rotate-180 transition-transform shrink-0"
-                >
-                  ▼
+                <span className="flex items-center gap-2 shrink-0">
+                  <span
+                    className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border ${
+                      isQuotedCode
+                        ? 'border-accent/40 text-accent bg-field'
+                        : 'border-hairline text-muted bg-field'
+                    }`}
+                  >
+                    {isQuotedCode ? 'Verbatim Code' : 'Prose Description'}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="text-t-xs text-muted font-normal group-open:rotate-180 transition-transform"
+                  >
+                    ▼
+                  </span>
                 </span>
               </summary>
               <div className="mt-3 text-t-xs font-mono space-y-3 border-t border-hairline/50 pt-3">
-                {entry.code !== null ? (
-                  <pre className="overflow-x-auto p-3 bg-field border border-hairline rounded text-t-xs text-light font-mono leading-relaxed m-0">
-                    <code>{entry.code}</code>
-                  </pre>
+                {isQuotedCode ? (
+                  <>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-muted">
+                      <span>Provenance: Quoted Source Code</span>
+                      <span className="text-accent/80 font-mono">commit c374f4d</span>
+                    </div>
+                    <pre className="overflow-x-auto p-3 bg-field border border-hairline rounded text-t-xs text-light font-mono leading-relaxed m-0">
+                      <code>{entry.code}</code>
+                    </pre>
+                    <p className="text-muted text-t-xs m-0 font-sans">{entry.note}</p>
+                  </>
                 ) : (
-                  <p className="text-muted leading-relaxed m-0 font-sans">{entry.note}</p>
+                  <>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-muted">
+                      <span>Provenance: Described, Not Quoted</span>
+                      <span className="italic font-sans">Private Repository</span>
+                    </div>
+                    <p className="text-muted leading-relaxed m-0 font-sans">{entry.note}</p>
+                  </>
                 )}
-                <p className="text-muted/80 text-t-xs m-0 font-sans italic">{entry.note}</p>
               </div>
             </details>
           );

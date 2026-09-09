@@ -15,11 +15,15 @@ export const SNIPPETS: Record<string, SnippetEntry> = {
     code: `const { projectId, deploymentId } = await createPendingDeployment({
   repoUrl,
   projectName,
-  ownerId: user.id,
-  kind,
-  startCommand,
+  ownerId: req.user.id,
+  kind: resolvedKind,
+  startCommand: resolvedStartCommand,
 });
-await buildQueue.add("build", { projectId, deploymentId, repoUrl, projectName });`,
+await buildQueue.add("build", {
+  projectId, deploymentId, repoUrl, projectName,
+  kind: resolvedKind,
+  startCommand: resolvedStartCommand,
+});`,
     note: 'deployment-platform (commit c374f4d) · Enqueues POST /deploy git URL payload into BullMQ.',
   },
 
@@ -27,10 +31,33 @@ await buildQueue.add("build", { projectId, deploymentId, repoUrl, projectName })
     title: '@platform/api',
     path: 'apps/api/src/index.js',
     lang: 'javascript',
-    code: `app.post("/api/deployments", async (req, res) => {
-  const { repoUrl, projectName } = req.body;
-  const deployment = await createPendingDeployment({ repoUrl, projectName });
-  return res.json(deployment);
+    code: `app.post("/deploy", requireAuth(getUser), async (req, res) => {
+  const { repoUrl, projectName, kind, startCommand } = req.body || {};
+  const resolvedKind = kind === "service" ? "service" : "static";
+  const resolvedStartCommand = resolvedKind === "service" ? startCommand : undefined;
+
+  try {
+    const { projectId, deploymentId } = await createPendingDeployment({
+      repoUrl,
+      projectName,
+      ownerId: req.user.id,
+      kind: resolvedKind,
+      startCommand: resolvedStartCommand,
+    });
+    await buildQueue.add("build", {
+      projectId, deploymentId, repoUrl, projectName,
+      kind: resolvedKind,
+      startCommand: resolvedStartCommand,
+    });
+
+    res.status(202).json({
+      deploymentId,
+      status: "queued",
+      url: \`http://\${projectName}.\${BASE_DOMAIN}:\${PROXY_PORT}\`,
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });`,
     note: 'deployment-platform (commit c374f4d) · Express API endpoint handling deployment creation.',
   },
@@ -59,10 +86,8 @@ export function createRedisConnection() {
     lang: 'javascript',
     code: `const worker = new Worker(
   BUILD_QUEUE_NAME,
-  async (job) => {
-    await runBuild(job.data);
-  },
-  { connection: createRedisConnection() }
+  async (job) => (job.data.kind === "service" ? runService(job.data) : runBuild(job.data)),
+  { connection: createRedisConnection(), concurrency: 1 },
 );`,
     note: 'deployment-platform (commit c374f4d) · BullMQ worker processing build jobs.',
   },
@@ -72,6 +97,7 @@ export function createRedisConnection() {
     path: 'infra/docker/build.sh',
     lang: 'shell',
     code: `REPO_URL="$1"
+
 git clone --depth 1 -- "$REPO_URL" /work/repo
 cd /work/repo`,
     note: 'deployment-platform (commit c374f4d) · Isolated container execution script.',
@@ -102,8 +128,14 @@ fi`,
     path: 'apps/worker/src/build.js',
     lang: 'javascript',
     code: `const bucketPath = \`\${projectName}/\${deploymentId}\`;
+// …
 const client = createMinioClient();
 const fileCount = await uploadDirectory(client, bucket, bucketPath, outDir);
+
+if (fileCount === 0) {
+  throw new Error("Build produced no output in dist/ — check the repo's build script");
+}
+
 await completeDeployment(pool, deploymentId, { bucketPath, fileCount });`,
     note: 'deployment-platform (commit c374f4d) · Uploading build output to MinIO bucket.',
   },
@@ -125,22 +157,32 @@ await completeDeployment(pool, deploymentId, { bucketPath, fileCount });`,
     title: 'Socket.IO',
     path: 'apps/api/src/index.js',
     lang: 'javascript',
-    code: `redisSub.subscribe(channel, (message) => {
-  io.to(\`deployment:\${deploymentId}\`).emit("build_log", JSON.parse(message));
+    code: `const logSubscriber = createRedisConnection();
+await logSubscriber.psubscribe(buildLogChannel("*"));
+logSubscriber.on("pmessage", (_pattern, channel, message) => {
+  const deploymentId = channel.slice(channel.lastIndexOf(":") + 1);
+  io.to(\`deployment:\${deploymentId}\`).emit("build-event", JSON.parse(message));
 });`,
     note: 'deployment-platform (commit c374f4d) · Streaming build logs over Socket.IO.',
   },
 
   'platform-dashboard': {
     title: '@platform/dashboard',
-    path: 'apps/dashboard/src/ProjectDetail.jsx',
+    path: 'apps/dashboard/src/LogViewer.jsx',
     lang: 'javascript',
-    code: `useEffect(() => {
-  const socket = io(API_URL);
-  socket.emit("subscribe", { deploymentId });
-  socket.on("build_log", (log) => setLogs((prev) => [...prev, log]));
-  return () => socket.disconnect();
-}, [deploymentId]);`,
+    code: `socket = io(api.url, { withCredentials: true });
+socket.on("connect", () => socket.emit("subscribe", deploymentId));
+socket.on("build-event", (event) => {
+  if (event.type === "line") {
+    setLines((prev) => [...prev, event.text]);
+  } else if (event.type === "done") {
+    setStatus(event.status);
+    onStatusChange?.(event.status);
+    if (event.status === "ready") {
+      setShowBurst(true);
+    }
+  }
+});`,
     note: 'deployment-platform (commit c374f4d) · Live log viewing in Dashboard.',
   },
 
@@ -149,9 +191,25 @@ await completeDeployment(pool, deploymentId, { bucketPath, fileCount });`,
     path: 'apps/proxy/src/index.js',
     lang: 'javascript',
     code: `const subdomain = extractSubdomain(req.headers.host);
+// …
 const bucketPath = await getCurrentDeploymentBucketPath(pool, subdomain);
+
+if (!bucketPath) {
+  res.writeHead(404, { "Content-Type": "text/plain" });
+  res.end(\`No deployment found for project "\${subdomain}"\`);
+  return;
+}
+
 const key = resolveKey(bucketPath, req.url);
-const { stream, contentType } = await getObject(client, BUCKET, key);`,
+
+try {
+  const { stream, contentType } = await getObject(client, BUCKET, key);
+  res.writeHead(200, { "Content-Type": contentType });
+  stream.pipe(res);
+} catch (err) {
+  res.writeHead(404, { "Content-Type": "text/plain" });
+  res.end(\`Not found: \${key}\`);
+}`,
     note: 'deployment-platform (commit c374f4d) · Proxy host lookup and MinIO streaming.',
   },
 
@@ -166,7 +224,6 @@ const { stream, contentType } = await getObject(client, BUCKET, key);`,
 }`,
     note: 'deployment-platform (commit c374f4d) · Subdomain routing contract.',
   },
-
   // GameZone nodes (private repository)
   'node-m1': {
     title: 'Android app',
