@@ -181,26 +181,30 @@ function updateSnapshot() {
 
   // 10. Document transfer
   const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-  let docVal = '6.1 KB';
+  let docVal = 'not exposed by this browser';
+  let docDark = true;
   if (navEntry) {
-    if (navEntry.transferSize === 0) {
+    if (navEntry.transferSize === 0 && navEntry.encodedBodySize > 0) {
       docVal = 'served from cache';
+      docDark = false;
     } else if (navEntry.transferSize > 0) {
       docVal = `${(navEntry.transferSize / 1024).toFixed(1)} KB`;
+      docDark = false;
     } else if (navEntry.encodedBodySize > 0) {
       docVal = `${(navEntry.encodedBodySize / 1024).toFixed(1)} KB`;
+      docDark = false;
     }
   }
   const docRow: MetricRow = {
     label: 'document',
     value: docVal,
     source: 'PerformanceNavigationTiming.transferSize',
-    dark: false,
+    dark: docDark,
   };
 
   // 11. Deferred 3D chunk
-  let chunkVal = '241.4 KB';
-  let chunkDark = false;
+  let chunkVal = 'not exposed by this browser';
+  let chunkDark = true;
   let chunkSource = 'PerformanceResourceTiming.encodedBodySize';
   if (tTier === 'low') {
     chunkVal = '3D chunk never fetched — low tier ships zero bytes of Three.js';
@@ -214,21 +218,27 @@ function updateSnapshot() {
     if (chunkEntries.length > 0) {
       // Find largest entry
       const largest = chunkEntries.reduce((max, cur) => (cur.encodedBodySize > max.encodedBodySize ? cur : max), chunkEntries[0]);
-      if (largest.transferSize === 0) {
+      if (largest.transferSize === 0 && largest.encodedBodySize > 0) {
         chunkVal = 'served from cache';
+        chunkDark = false;
       } else {
         const bytes = largest.transferSize || largest.encodedBodySize;
-        chunkVal = `${(bytes / 1024).toFixed(1)} KB`;
+        if (bytes > 0) {
+          chunkVal = `${(bytes / 1024).toFixed(1)} KB`;
+          chunkDark = false;
+        }
       }
     } else {
       // Check all chunks if DCL not marked yet
       const anyChunk = resources.filter((r) => r.initiatorType === 'script' && r.name.includes('/_next/static/chunks/'));
       if (anyChunk.length > 0) {
         const largest = anyChunk.reduce((max, cur) => (cur.encodedBodySize > max.encodedBodySize ? cur : max), anyChunk[0]);
-        if (largest.transferSize === 0) {
+        if (largest.transferSize === 0 && largest.encodedBodySize > 0) {
           chunkVal = 'served from cache';
-        } else {
+          chunkDark = false;
+        } else if (largest.encodedBodySize > 0) {
           chunkVal = `${(largest.encodedBodySize / 1024).toFixed(1)} KB`;
+          chunkDark = false;
         }
       }
     }
@@ -252,8 +262,10 @@ function updateSnapshot() {
   );
   const jsBytes = initialJsResources.reduce((acc, r) => acc + (r.encodedBodySize || r.transferSize || 0), 0);
 
-  let initialVal = '234.7 KB';
+  let initialVal = 'not exposed by this browser';
+  let initialDark = true;
   if (totalInitial > 0) {
+    initialDark = false;
     if (jsBytes > 0) {
       initialVal = `${(totalInitial / 1024).toFixed(1)} KB (${(jsBytes / 1024).toFixed(1)} KB JS)`;
     } else {
@@ -265,12 +277,12 @@ function updateSnapshot() {
     label: 'total page fetch',
     value: initialVal,
     source: 'PerformanceResourceTiming sum(encodedBodySize)',
-    dark: false,
+    dark: initialDark,
   };
 
   // 13. Frame mean
-  let frameVal = '16.9 ms';
-  let frameDark = false;
+  let frameVal = 'not exposed by this browser';
+  let frameDark = true;
   if (tTier === 'low') {
     frameVal = 'no render loop at this tier';
     frameDark = true;
@@ -280,6 +292,7 @@ function updateSnapshot() {
   } else if (frameCount > 0) {
     const meanMs = frameSum / frameCount;
     frameVal = `${meanMs.toFixed(1)} ms`;
+    frameDark = false;
   }
   const frameRow: MetricRow = {
     label: 'frame mean',

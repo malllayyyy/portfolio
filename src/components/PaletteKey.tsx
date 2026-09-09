@@ -19,7 +19,10 @@ export function PaletteKey({ exhibits }: PaletteKeyProps) {
         if (typeof document === 'undefined') return;
 
         // 1. Panel is open
-        if (document.documentElement.dataset.panel) return;
+        if (document.documentElement.dataset.panel) {
+          e.preventDefault();
+          return;
+        }
 
         // 2. Active element is an editable input or field
         const active = document.activeElement as HTMLElement | null;
@@ -31,14 +34,17 @@ export function PaletteKey({ exhibits }: PaletteKeyProps) {
             tag === 'SELECT' ||
             active.isContentEditable
           ) {
+            e.preventDefault();
             return;
           }
         }
 
         // 3. Captured game canvas
         const capturedCanvas = document.querySelector('canvas[data-captured="true"]');
-        if (capturedCanvas) return;
-
+        if (capturedCanvas) {
+          e.preventDefault();
+          return;
+        }
         // Intercept shortcut only when opening
         e.preventDefault();
 

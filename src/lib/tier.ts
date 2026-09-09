@@ -2,14 +2,19 @@ import { getMotion } from './motion-pref';
 
 export type Tier = 'low' | 'mid' | 'high';
 
+let cachedWebglSupported: boolean | null = null;
+
 export function webglSupported(): boolean {
   if (typeof window === 'undefined') return false;
+  if (cachedWebglSupported !== null) return cachedWebglSupported;
   try {
     const c = document.createElement('canvas');
     const ok = !!(c.getContext('webgl2') ?? c.getContext('webgl'));
     c.width = c.height = 0; // discard immediately
+    cachedWebglSupported = ok;
     return ok;
   } catch {
+    cachedWebglSupported = false;
     return false;
   }
 }
