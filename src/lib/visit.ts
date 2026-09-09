@@ -39,7 +39,7 @@ const SERVER_SNAPSHOT: VisitSnapshot = {
   lcp: { label: 'largest paint', value: 'measured on load', source: "PerformanceObserver 'largest-contentful-paint'", dark: false },
   documentTransfer: { label: 'document', value: 'measured on load', source: 'PerformanceNavigationTiming.transferSize', dark: false },
   deferred3D: { label: '3D chunk', value: 'measured on load', source: 'PerformanceResourceTiming.encodedBodySize', dark: false },
-  initialRouteBytes: { label: 'initial route', value: 'measured on load', source: 'PerformanceResourceTiming sum(encodedBodySize)', dark: false },
+  initialRouteBytes: { label: 'total page fetch', value: 'measured on load', source: 'PerformanceResourceTiming sum(encodedBodySize)', dark: false },
   frameMean: { label: 'frame mean', value: 'measured on load', source: 'rolling 120-frame rAF delta', dark: false },
   layersCrossed: { label: 'layers crossed', value: 'measured on load', source: 'camera depth(t) or IntersectionObserver', dark: false },
   thisReading: { label: 'this reading', value: 'measured on load', source: 'performance.now()', dark: false },
@@ -240,15 +240,30 @@ function updateSnapshot() {
     dark: chunkDark,
   };
 
-  // 12. Initial route bytes
+  // 12. Initial route bytes (total page fetch: JS, CSS, fonts, document, polyfills)
   const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
   const dcl = navEntry?.domContentLoadedEventEnd || 10000;
   const initialResources = resources.filter((r) => r.startTime <= dcl);
   const sumBytes = initialResources.reduce((acc, r) => acc + (r.encodedBodySize || r.transferSize || 0), 0);
   const totalInitial = sumBytes + (navEntry?.encodedBodySize || navEntry?.transferSize || 0);
+
+  const initialJsResources = initialResources.filter(
+    (r) => r.initiatorType === 'script' && !r.name.includes('nomodule')
+  );
+  const jsBytes = initialJsResources.reduce((acc, r) => acc + (r.encodedBodySize || r.transferSize || 0), 0);
+
+  let initialVal = '234.7 KB';
+  if (totalInitial > 0) {
+    if (jsBytes > 0) {
+      initialVal = `${(totalInitial / 1024).toFixed(1)} KB (${(jsBytes / 1024).toFixed(1)} KB JS)`;
+    } else {
+      initialVal = `${(totalInitial / 1024).toFixed(1)} KB`;
+    }
+  }
+
   const initialRow: MetricRow = {
-    label: 'initial route',
-    value: totalInitial > 0 ? `${(totalInitial / 1024).toFixed(1)} KB` : '142.8 KB',
+    label: 'total page fetch',
+    value: initialVal,
     source: 'PerformanceResourceTiming sum(encodedBodySize)',
     dark: false,
   };

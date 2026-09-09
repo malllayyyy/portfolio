@@ -22,36 +22,6 @@ const WINDOW_BOTTOM = -40.0;
  */
 const QUAD_NEAR_MARGIN = 0.015;
 
-declare global {
-  interface Window {
-    __lab?: {
-      y: number;
-      inWindow: boolean;
-      calls: number;
-      triangles: number;
-      rt: string | null;
-      hasMap: boolean;
-      quadVisible: boolean;
-    };
-  }
-}
-
-/**
- * Phase 3 go/no-go instrumentation. Writes nothing unless the lab route opts in
- * via `data-lab="1"`, so the real site never carries a debug global.
- */
-function reportLab(
-  y: number,
-  inWindow: boolean,
-  calls: number,
-  triangles: number,
-  rt: string | null,
-  hasMap: boolean,
-  quadVisible: boolean
-) {
-  if (document.documentElement.dataset.lab !== '1') return;
-  window.__lab = { y: +y.toFixed(2), inWindow, calls, triangles, rt, hasMap, quadVisible };
-}
 
 /**
  * § 2.6 — the two-pass render.
@@ -155,7 +125,6 @@ export function PassThrough({ screenMaterial }: { screenMaterial: ShaderMaterial
       screenMaterial.uniforms.uHasMap.value = 0.0;
       gl.setRenderTarget(null);
       gl.render(scene, camera);
-      reportLab(y, false, gl.info.render.calls, gl.info.render.triangles, null, false, true);
       return;
     }
 
@@ -175,7 +144,6 @@ export function PassThrough({ screenMaterial }: { screenMaterial: ShaderMaterial
     screenMaterial.uniforms.uHasMap.value = 1.0;
     screenMaterial.uniforms.uMap.value = target.texture;
     gl.render(scene, camera);
-    reportLab(y, true, gl.info.render.calls, gl.info.render.triangles, `${target.width}x${target.height}`, !!screenMaterial.uniforms.uMap.value, true);
   }, 1);
 
   return null;

@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '404 \u2014 Depth Not Found \u2014 Malay Chaudhary',
+};
+
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { NotFoundMessage, NotFoundExitLink } from '@/components/NotFoundClient';

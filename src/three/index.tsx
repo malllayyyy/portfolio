@@ -77,11 +77,7 @@ export default function CanvasContainer() {
         powerPreference: 'high-performance',
         alpha: false,
         logarithmicDepthBuffer: true,
-        // The G3.1 frame-diff criterion needs to read pixels back off the
-        // canvas, which is impossible once the drawing buffer is swapped away.
-        // Lab route only — it costs performance and the real site never sets it.
-        preserveDrawingBuffer:
-          typeof document !== 'undefined' && document.documentElement.dataset.lab === '1',
+        preserveDrawingBuffer: false,
       }}
       camera={{ position: [0, 6, 0], fov: 55, near: 0.02, far: 420 }}
       onCreated={({ gl }) => {
