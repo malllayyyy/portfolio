@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SITE } from '@/content/site';
+import { SITE, PORTRAIT_PRESENT } from '@/content/site';
 import { ROUTES } from '@/content/routes';
 import { PortraitSlot } from '@/components/PortraitSlot';
 import { Contact } from '@/components/Contact';
@@ -13,7 +13,7 @@ export default function AboutPage() {
       <div className="lg:col-span-12">
         <h1 className="font-display font-bold text-t-xl text-light">About</h1>
         <div className="mt-12 flex flex-col gap-12 lg:flex-row lg:gap-24">
-          <PortraitSlot />
+          {PORTRAIT_PRESENT && <PortraitSlot />}
           <div className="prose-measure">
             <p className="font-display text-t-base text-light">
               {SITE.name} — {SITE.credential}.

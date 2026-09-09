@@ -280,8 +280,8 @@ export function Engine({ pongGameQuad }: EngineProps = {}) {
   useLayoutEffect(() => {
     const obj = new Object3D();
 
-    // Volume 0: Pong (y = -124, offset x = -3)
-    obj.position.set(-3, -124, 0);
+    // Volume 0: Pong (y = -124, offset x = 0)
+    obj.position.set(0, -124, 0);
     obj.updateMatrix();
     playVolumeMatcapRef.current?.setMatrixAt(0, obj.matrix);
     playVolumeWireframeRef.current?.setMatrixAt(0, obj.matrix);
@@ -389,7 +389,7 @@ export function Engine({ pongGameQuad }: EngineProps = {}) {
     }
 
     if (pointLightRef.current) {
-      pointLightRef.current.intensity = isPlaying ? 3.0 : 9.0;
+      pointLightRef.current.intensity = isPlaying ? 3.0 : 13.0;
     }
     if (ghostMaterialRef.current) {
       ghostMaterialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
@@ -404,7 +404,6 @@ export function Engine({ pongGameQuad }: EngineProps = {}) {
       wireframeMaterial.dispose();
       openBoxGeo.dispose();
       openBoxWireframeGeo.dispose();
-      ghostGeometry.dispose();
       ghostMaterial.dispose();
     };
   }, [
@@ -436,7 +435,7 @@ export function Engine({ pongGameQuad }: EngineProps = {}) {
         args={[openBoxGeo, wireframeMaterial, 1]}
       />
       {/* Phase 5 seams: Game CanvasTexture quad mounted inside volume at floor level */}
-      <group position={[-3, -124 - 0.79, 0]} ref={toInterior}>
+      <group position={[0, -124 - 0.79, 0]} ref={toInterior}>
         {pongGameQuad ?? (
           <GameVolumeQuad canvasId="game-mount-pong-canvas" fallbackColor="#10151C" />
         )}

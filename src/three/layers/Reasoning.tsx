@@ -63,7 +63,7 @@ void main() {
 
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
   gl_Position = projectionMatrix * mvPosition;
-  gl_PointSize = clamp(220.0 / -mvPosition.z, 2.0, 12.0);
+  gl_PointSize = clamp(320.0 / -mvPosition.z, 3.0, 14.0);
 }
 `;
 
@@ -75,7 +75,7 @@ void main() {
   float dist = length(coord);
   if (dist > 0.5) discard;
   float alpha = pow(smoothstep(0.5, 0.0, dist), 1.5);
-  gl_FragColor = vec4(uAccent, alpha * 0.9);
+  gl_FragColor = vec4(uAccent, alpha * 1.0);
 }
 `;
 
@@ -200,7 +200,7 @@ export function Reasoning() {
         <lineBasicMaterial
           color="#C8FF6A"
           transparent
-          opacity={0.22}
+          opacity={0.65}
           blending={AdditiveBlending}
           depthWrite={false}
         />
@@ -217,7 +217,7 @@ export function Reasoning() {
         rotation={[-Math.PI / 2, 0, 0]}
       >
         <planeGeometry args={[400, 400]} />
-        <meshStandardMaterial color="#10151C" roughness={1} />
+        <meshStandardMaterial color="#10151C" emissive="#1B2430" roughness={0.8} />
       </mesh>
     </group>
   );
