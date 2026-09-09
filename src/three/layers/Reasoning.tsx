@@ -7,7 +7,7 @@ import type { Object3D, ShaderMaterial } from 'three';
 import { INTERIOR } from './Device';
 import { Exhibit } from '../Exhibit';
 import { NodeField } from '../NodeField';
-
+import { VisitField } from '../VisitField';
 export type ClientMessageType =
   | 'prompt'
   | 'set_model'
@@ -209,7 +209,7 @@ export function Reasoning() {
       <Exhibit slug="switchboard" depth={-278}>
         <NodeField />
       </Exhibit>
-
+      <VisitField />
       {/* Bedrock plane at y = -300 */}
       <mesh
         ref={toInterior}
