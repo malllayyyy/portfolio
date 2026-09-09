@@ -6,6 +6,8 @@ import { LinkRow } from './LinkRow';
 import { ShotGallery } from './ShotGallery';
 import { DeploymentPlatformDiagram } from '@/diagrams/DeploymentPlatformDiagram';
 import { GameZoneDiagram } from '@/diagrams/GameZoneDiagram';
+import { DiagramNodeIndex } from './DiagramNodeIndex';
+import { DiagramNodeLink } from './DiagramNodeLink';
 import { ProtocolTable } from './ProtocolTable';
 import { GameMount } from './GameMount';
 
@@ -66,10 +68,16 @@ export function ProjectArticle({ project: p }: { project: Project }) {
       <div className="mt-12">
         {p.presentation.kind === 'screenshots' && <ShotGallery shots={p.presentation.shots} />}
         {p.presentation.kind === 'diagram' && p.presentation.component === 'deployment-platform' && (
-          <DeploymentPlatformDiagram />
+          <DiagramNodeLink>
+            <DeploymentPlatformDiagram />
+            <DiagramNodeIndex id="deployment-platform" />
+          </DiagramNodeLink>
         )}
         {p.presentation.kind === 'diagram' && p.presentation.component === 'gamezone' && (
-          <GameZoneDiagram />
+          <DiagramNodeLink>
+            <GameZoneDiagram />
+            <DiagramNodeIndex id="gamezone" />
+          </DiagramNodeLink>
         )}
         {p.presentation.kind === 'node-field' && (
           <>

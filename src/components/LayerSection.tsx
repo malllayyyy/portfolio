@@ -9,7 +9,7 @@ const LAYER_STILLS: Record<LayerId, Array<{ src: string; priority?: boolean }>> 
     { src: '/stills/device.avif', priority: false },
   ],
   engine: [{ src: '/stills/engine.avif', priority: false }],
-  reasoning: [{ src: '/stills/reasoning.avif', priority: false }],
+  reasoning: [],
   bedrock: [],
 };
 

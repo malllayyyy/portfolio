@@ -138,7 +138,7 @@ export function GameZoneDiagram() {
       {/* Layer C: Nodes & Shapes */}
       <g id="layer-nodes">
         {/* M1: Android app */}
-        <g id="node-m1">
+        <g id="node-m1" data-node="node-m1" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>Android app</title>
           <desc>Capacitor 6 Android app client with package ID com.gamezone.app</desc>
           <rect
@@ -160,7 +160,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M2: desktop browser */}
-        <g id="node-m2">
+        <g id="node-m2" data-node="node-m2" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>desktop browser</title>
           <desc>Desktop web browser client running the Vite React application</desc>
           <rect
@@ -179,7 +179,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M3: same Vite bundle */}
-        <g id="node-m3">
+        <g id="node-m3" data-node="node-m3" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>same Vite bundle</title>
           <desc>Shared React 18 + Vite client bundle serving both clients</desc>
           <rect
@@ -201,7 +201,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M4: backend/server.js */}
-        <g id="node-m4">
+        <g id="node-m4" data-node="node-m4" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>backend/server.js</title>
           <desc>Express backend server exposing approximately 15 REST endpoints</desc>
           <rect
@@ -223,7 +223,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M5: SQLite */}
-        <g id="node-m5">
+        <g id="node-m5" data-node="node-m5" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>SQLite</title>
           <desc>SQLite database storing 7 tables: stations, sessions, settings, activities, snacks, cafeteria_expenses, revenue_history</desc>
           <path
@@ -256,7 +256,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M6: Start-GameZone.bat */}
-        <g id="node-m6">
+        <g id="node-m6" data-node="node-m6" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>Start-GameZone.bat</title>
           <desc>One-click batch script launcher running locally on the cafe machine</desc>
           <rect
@@ -275,7 +275,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* Pragma Callout Box */}
-        <g id="pragma-callout-box">
+        <g id="pragma-callout-box" data-node="pragma-callout-box" className="cursor-pointer hover:opacity-80 transition-opacity">
           <rect
             x="290"
             y="325"
@@ -307,7 +307,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R1: station occupied */}
-        <g id="node-r1">
+        <g id="node-r1" data-node="node-r1" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>station occupied</title>
           <desc>Station currently has an active gaming session</desc>
           <rect
@@ -326,7 +326,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R2: POST /api/sessions/add-game */}
-        <g id="node-r2">
+        <g id="node-r2" data-node="node-r2" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>POST /api/sessions/add-game</title>
           <desc>API call triggered when adding or switching game during active session</desc>
           <rect
@@ -345,7 +345,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R3: overage computed */}
-        <g id="node-r3">
+        <g id="node-r3" data-node="node-r3" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>overage computed</title>
           <desc>System computes played overage time from initial activity duration</desc>
           <rect
@@ -364,7 +364,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R4: deducted from new activity */}
-        <g id="node-r4">
+        <g id="node-r4" data-node="node-r4" className="cursor-pointer hover:opacity-80 transition-opacity">
           <title>deducted from new activity</title>
           <desc>Computed overage is deducted from the new activity duration</desc>
           <rect

@@ -269,7 +269,7 @@ export function DetailPanel() {
 
     if (e.key === 'Tab' && panelRef.current) {
       const focusables = panelRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, summary, [tabindex]:not([tabindex="-1"])'
       );
       if (focusables.length === 0) return;
 

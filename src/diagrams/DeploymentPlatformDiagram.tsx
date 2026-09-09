@@ -101,7 +101,7 @@ export function DeploymentPlatformDiagram() {
         {/* Layer C: Nodes */}
         <g id="layer-nodes">
           {/* N1: git URL */}
-          <g>
+          <g data-node="git-url" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>git URL</title>
             <rect x="24" y="40" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#8FA0B0" />
             <text x="99" y="66" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -110,7 +110,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N2: @platform/api */}
-          <g>
+          <g data-node="platform-api" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>@platform/api</title>
             <rect x="220" y="40" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="295" y="57" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -122,7 +122,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N3: Redis · BullMQ queue */}
-          <g>
+          <g data-node="bullmq-queue" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>Redis · BullMQ queue</title>
             <ellipse cx="505" cy="42" rx="75" ry="10" fill="#10151C" stroke="#1B2430" />
             <path d="M 430 42 v 36 a 75 10 0 0 0 150 0 v -36" fill="#10151C" stroke="#1B2430" />
@@ -139,7 +139,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N4: @platform/worker */}
-          <g>
+          <g data-node="platform-worker" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>@platform/worker</title>
             <rect x="640" y="40" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="715" y="66" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -148,7 +148,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N5: platform-build-sandbox */}
-          <g>
+          <g data-node="platform-build-sandbox" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>platform-build-sandbox</title>
             <rect x="660" y="170" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="735" y="187" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -160,7 +160,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N6: node_modules cache */}
-          <g>
+          <g data-node="lockfile-cache" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>node_modules cache</title>
             <ellipse cx="535" cy="177" rx="75" ry="10" fill="#10151C" stroke="#1B2430" />
             <path d="M 460 177 v 36 a 75 10 0 0 0 150 0 v -36" fill="#10151C" stroke="#1B2430" />
@@ -174,7 +174,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N7: MinIO */}
-          <g>
+          <g data-node="minio" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>MinIO</title>
             <ellipse cx="735" cy="332" rx="75" ry="10" fill="#10151C" stroke="#1B2430" />
             <path d="M 660 332 v 36 a 75 10 0 0 0 150 0 v -36" fill="#10151C" stroke="#1B2430" />
@@ -188,7 +188,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N8: Postgres */}
-          <g>
+          <g data-node="postgres-atomic-swap" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>Postgres</title>
             <ellipse cx="455" cy="412" rx="75" ry="10" fill="#10151C" stroke="#1B2430" />
             <path d="M 380 412 v 36 a 75 10 0 0 0 150 0 v -36" fill="#10151C" stroke="#1B2430" />
@@ -205,7 +205,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N9: Socket.IO */}
-          <g>
+          <g data-node="socket-io" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>Socket.IO</title>
             <rect x="220" y="170" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="295" y="196" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -214,7 +214,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N10: @platform/dashboard */}
-          <g>
+          <g data-node="platform-dashboard" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>@platform/dashboard</title>
             <rect x="24" y="170" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="99" y="196" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -223,7 +223,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N11: @platform/proxy */}
-          <g>
+          <g data-node="platform-proxy" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>@platform/proxy</title>
             <rect x="140" y="400" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#1B2430" />
             <text x="215" y="426" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
@@ -232,7 +232,7 @@ export function DeploymentPlatformDiagram() {
           </g>
 
           {/* N12: browser */}
-          <g>
+          <g data-node="browser" className="cursor-pointer hover:opacity-80 transition-opacity">
             <title>browser</title>
             <rect x="24" y="470" width="150" height="44" rx="4" ry="4" fill="#10151C" stroke="#8FA0B0" />
             <text x="99" y="496" textAnchor="middle" fontSize="11" fontFamily="var(--font-mono, monospace)" fill="#8FA0B0">
