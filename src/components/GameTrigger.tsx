@@ -10,12 +10,13 @@ export function GameTrigger({ game }: { game: 'pong' }) {
 
     const start = () => {
       if (canvas) {
-        import('./PlayEngine').then((m) => m.startInteractiveGame(game, canvas));
+        import('@/components/PlayEngine').then((m) => m.startInteractiveGame(game, canvas));
       }
     };
 
     btn?.addEventListener('click', start);
     canvas?.addEventListener('click', start);
+
     return () => {
       btn?.removeEventListener('click', start);
       canvas?.removeEventListener('click', start);

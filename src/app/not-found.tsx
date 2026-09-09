@@ -1,4 +1,10 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { NotFoundMessage, NotFoundExitLink } from '@/components/NotFoundClient';
+
+const GameMount = dynamic(() => import('@/components/GameMount').then((m) => m.GameMount), {
+  ssr: true,
+});
 
 export default function NotFound() {
   return (
@@ -11,11 +17,20 @@ export default function NotFound() {
         <p className="mt-6 font-display text-t-base text-muted">
           The requested path is not part of the stack.
         </p>
-        <p className="mt-6 font-mono text-t-sm">
-          <Link href="/" className="underline decoration-[var(--accent)] text-light">
-            Return to Surface
-          </Link>
+
+        <NotFoundMessage />
+
+        <GameMount game="pong" />
+
+        <p className="mt-4 font-mono text-t-xs text-muted">
+          Engine sourced from the{' '}
+          <Link href="/project/pong" className="underline decoration-[var(--accent)] text-light">
+            Pong project
+          </Link>{' '}
+          at −120 m.
         </p>
+
+        <NotFoundExitLink />
       </div>
     </main>
   );

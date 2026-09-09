@@ -12,6 +12,13 @@ export function GameMount({ game }: GameMountProps) {
 
   const containerId = `game-mount-${game}`;
 
+  const handleStart = () => {
+    const canvas = document.getElementById(`${containerId}-canvas`) as HTMLCanvasElement | null;
+    if (canvas) {
+      import('@/components/PlayEngine').then((m) => m.startInteractiveGame(game, canvas));
+    }
+  };
+
   useEffect(() => {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -59,6 +66,7 @@ export function GameMount({ game }: GameMountProps) {
           tabIndex={-1}
           aria-label={`${gameTitle} game canvas. Press Enter to start playing.`}
           className="w-full h-full block cursor-pointer focus:outline-none"
+          onClick={handleStart}
         />
 
         {/* Uncaptured overlay */}
@@ -70,12 +78,12 @@ export function GameMount({ game }: GameMountProps) {
             id={`${containerId}-btn`}
             type="button"
             className="border border-hairline bg-strata hover:border-surface-accent px-4 py-2 font-display text-t-sm text-light rounded cursor-pointer focus-visible:outline-2 focus-visible:outline-surface-accent"
+            onClick={handleStart}
           >
             {gameButtonText}
           </button>
         </div>
       </div>
-
 
       {/* Client trigger for game loading */}
       <GameTrigger game={game} />
