@@ -6,6 +6,7 @@ import { ProjectArticle } from '@/components/ProjectArticle';
 import { PortraitSlot } from '@/components/PortraitSlot';
 import { Contact } from '@/components/Contact';
 import { KeyboardHelp } from '@/components/KeyboardHelp';
+import { DescentProfile } from '@/components/DescentProfile';
 import { SceneMount } from '@/components/SceneMount';
 import { DeferredOverlays } from '@/components/DeferredOverlays';
 import { PaletteKey } from '@/components/PaletteKey';
@@ -69,6 +70,7 @@ export function Descent() {
               <Contact />
               <KeyboardHelp />
             </div>
+            <DescentProfile />
           </div>
         </section>
       </main>
