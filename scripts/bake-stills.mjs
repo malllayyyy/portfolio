@@ -20,16 +20,19 @@ function tOfDepth(y) {
   let low = 0;
   let high = LEN - 1;
 
-  while (low <= high) {
-    const mid = (low + high) >> 1;
-    if (DEPTH_TABLE[mid][1] >= y) {
-      low = mid + 1;
+  while (low <= high - 2) {
+    const mid = Math.floor((low + high) / 2);
+    if (DEPTH_TABLE[mid][1] >= y && y >= DEPTH_TABLE[mid + 1][1]) {
+      low = mid;
+      break;
+    } else if (DEPTH_TABLE[mid][1] < y) {
+      high = mid;
     } else {
-      high = mid - 1;
+      low = mid + 1;
     }
   }
 
-  const i = high;
+  const i = low;
   const y0 = DEPTH_TABLE[i][1];
   const y1 = DEPTH_TABLE[i + 1][1];
   const t0 = DEPTH_TABLE[i][0];
@@ -81,7 +84,22 @@ async function main() {
 
     console.log('[bake-stills] Waiting for 3D canvas element...');
     await page.waitForSelector('canvas', { timeout: 10000 });
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 1000));
+
+    // Hide DOM overlay elements so element screenshot captures clean WebGL canvas
+    await page.addStyleTag({
+      content: `
+        header, main, nav, footer, a, .detail-panel-wrapper, #route-announcer {
+          opacity: 0 !important;
+          visibility: hidden !important;
+        }
+      `,
+    });
+
+    const canvasHandle = await page.$('canvas');
+    if (!canvasHandle) {
+      throw new Error('Canvas element handle not found');
+    }
 
     const publicStillsDir = path.join(process.cwd(), 'public', 'stills');
     if (!fs.existsSync(publicStillsDir)) {
@@ -110,7 +128,7 @@ async function main() {
         await new Promise((r) => setTimeout(r, 100));
         rig = await page.evaluate(() => window.__rig);
         actualY = rig?.cameraY ?? 0;
-        if (Date.now() - startTime >= 950 && Math.abs(actualY - still.depth) <= 0.3) {
+        if (Date.now() - startTime >= 950 && Math.abs(actualY - still.depth) <= 0.5) {
           break;
         }
       }
@@ -118,15 +136,20 @@ async function main() {
       // Wait for rAF so WebGL renders the converged frame
       await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
-      // Capture composited page viewport screenshot
-      const pngBuf = await page.screenshot({ type: 'png' });
+      // Element-scoped screenshot of canvas element
+      const pngBuf = await canvasHandle.screenshot({ type: 'png' });
+
       // Encode to AVIF, tuning quality down if needed to respect <= 71680 B budget
       let quality = 78;
-      let avifBuf = await sharp(pngBuf).avif({ quality, effort: 6 }).toBuffer();
+      let avifBuf = await sharp(pngBuf)
+        .avif({ quality, effort: 7, chromaSubsampling: '4:2:0' })
+        .toBuffer();
 
-      while (avifBuf.length > MAX_STILL_BYTES && quality > 30) {
+      while (avifBuf.length > MAX_STILL_BYTES && quality > 8) {
         quality -= 3;
-        avifBuf = await sharp(pngBuf).avif({ quality, effort: 6 }).toBuffer();
+        avifBuf = await sharp(pngBuf)
+          .avif({ quality, effort: 7, chromaSubsampling: '4:2:0' })
+          .toBuffer();
       }
 
       if (avifBuf.length > MAX_STILL_BYTES) {
