@@ -6,9 +6,11 @@ export function DecisionList({ decisions }: { decisions: Decision[] }) {
       {decisions.map((d, i) => (
         <li key={i} className="prose-measure">
           <p className="font-display text-t-base text-light m-0">{d.body}</p>
-          <p className="mt-3 font-mono text-t-sm text-muted m-0">
-            {d.evidence.join('  ·  ')}
-          </p>
+          {d.evidence?.length ? (
+            <p className="mt-3 font-mono text-t-sm text-muted m-0">
+              {d.evidence.join('  ·  ')}
+            </p>
+          ) : null}
         </li>
       ))}
     </ol>
