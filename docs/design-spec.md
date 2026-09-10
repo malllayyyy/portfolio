@@ -23,6 +23,8 @@ One uncut Three.js camera descent through four depths of a computing stack. Scro
 | −260 m | **Reasoning** | Agentic AI | Switchboard |
 | −300 m | **Bedrock** | — | About, résumé, contact; canvas unmounts |
 
+*Deviation note (2026-09-10 content cut pass): Pong was removed as a descent exhibit and project route (`/project/pong`). The Engine layer has no in-page exhibit or play volume. Pong lives exclusively on the 404 page (`src/app/not-found.tsx`), and Pixel Quest was removed entirely.*
+
 The signature moment is the **screen pass-through** at −40 m: the camera descends into a monolithic phone whose screen is a live render target of the layer below; at the exact frame the camera crosses the screen plane, the render target *becomes* the scene. No cut, no loader, no dissolve. Section 2.6 specifies the mechanic precisely enough to build without invention.
 
 Positioning: *a modern developer who builds games, websites, applications, and software* — argued structurally rather than asserted. Four domains presented as four depths of one stack reads as vertical integration, not scatter.
@@ -315,6 +317,8 @@ The only project with real captured UI. All 8 shots in `assets/raw/proacademys/`
 Panel structure, in order: title → one-line thesis → live-demo link → the three verified engineering decisions as three short prose blocks, each ending in the **file path** that proves it (`server/scripts/migrate/run.js` etc.) → scale numbers (37 → 20, ~8 500 LOC, ~30 endpoints) → shot sequence → the one honest limitation (pending DNS cutover to `proacademys.com` and live Razorpay keys).
 
 Image delivery: AVIF with WebP fallback via `next/image`, `sizes` capped at the panel's 5-column width (max 640 px CSS), lazy except the first, `loading="eager"` only on panel-open position 1. The in-world plate texture is a separate KTX2 at 1024², loaded with the Surface layer chunk.
+
+*Deviation note (2026-09-10 content cut pass): The `screenshots` and `playable` presentation modes, `scale` stats grid, `ShotGallery`, and `ScaleStats` components were deleted across all projects. All 16 static screenshot files (417 KB) were removed. The evidence-first rule was narrowed: specificity only earns its place when the thing itself is unusual. Generic metrics (table counts, LOC, endpoint counts) were removed in favor of concise, verified engineering decision lists.*
 
 ### 4.3 Presentation mode B — architecture diagram (deployment-platform, GameZone)
 
@@ -683,6 +687,7 @@ Next 16 App Router, statically rendered. Every URL below is a real, crawlable, s
 
 
 *Deviation note (2026-09-09): Pixel Quest (`/project/pixel-quest`) was removed at the owner's explicit request. Pong remains as the sole playable game in the Engine layer.*
+*Deviation note (2026-09-10 content cut pass): Superseding the 2026-09-09 note above — Pong was removed as a descent exhibit and route (`/project/pong`). It now lives exclusively on the 404 page (`src/app/not-found.tsx`). The Engine layer has no in-page exhibit. Total route count is 11 static routes.*
 Deliberately **not** routes: no `/projects` index (the descent is the index — a grid would reintroduce non-goal 2), no `/blog`, no `/uses`.
 
 ### 10.2 Deep-link load behaviour

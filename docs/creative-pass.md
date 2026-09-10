@@ -44,6 +44,8 @@ here rather than silently designed around.
 
 # Feature 1 — The Reasoning layer reasons about the visitor's own visit
 
+*Deviation note (2026-09-10 content cut pass): Feature 1's telemetry readout was trimmed from 15 rows to 9.*
+
 ## The problem, precisely
 
 `src/three/NodeField.tsx:28` reads `const trace: TraceFixture | null = SWITCHBOARD_TRACE;` and
@@ -244,6 +246,8 @@ copy, not as an error state. Row 15 uses the `IntersectionObserver` path.
 ---
 
 # Feature 2 — Explorable architecture diagrams
+
+*Deviation note (2026-09-10 content cut pass): Feature 2 (the explorable Architecture Node Index) was deleted entirely during the content cut pass. `snippets.ts`, `DiagramNodeIndex.tsx`, and `DiagramNodeLink.tsx` were deleted, and both architecture diagrams were de-activated to eliminate over-explaining.*
 
 ## Scope
 
@@ -531,6 +535,8 @@ believes the spec. That is the only edit this feature makes to the spec.
 −300 m   BEDROCK
 ```
 
+*Deviation note (2026-09-10 content cut pass): Pong was removed as a descent exhibit at -124 m and as a project route (`/project/pong`). It now lives exclusively on the 404 page (`src/app/not-found.tsx`).*
+
 Depths come from `src/content/layers.ts` (`datum`) and `src/content/projects/*.ts` (`depth`) — the
 same two sources `DepthGauge` and `ExhibitProxyNav` already read. They are never recomputed and
 never hard-coded in the palette. Formatting reuses the existing `−278 m` convention
@@ -699,6 +705,8 @@ Four agents, disjoint file sets except where noted.
 | **A3 — 404 Pong** | `src/app/not-found.tsx` | — |
 | **A4 — Palette** | `src/components/DepthPalette.tsx`, `src/components/PaletteKey.tsx`, `src/components/KeyboardHelp.tsx`, `src/app/page.tsx`, `docs/design-spec.md` § 9.2 | — |
 
+
+*Deviation note (2026-09-10 content cut pass): Workstream A2 (`snippets.ts`, `DiagramNodeIndex.tsx`, `DiagramNodeLink.tsx`) was deleted.*
 `src/lib/store.ts`, `src/three/depth.ts`, `src/three/PassThrough.tsx`, `src/three/Rig.tsx`,
 `src/three/exhibit-state.tsx`, `src/engine/**` and `scripts/measure-budget.mjs` are owned by
 **nobody**. Every feature consumes them and none modifies them. If a feature appears to need an

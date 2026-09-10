@@ -1066,6 +1066,8 @@ export const pong: Project = {
 };
 ```
 
+*Deviation note (2026-09-10 content cut pass): Task 1.5 step 4 (`pong.ts`) and the `playable` and `screenshots` presentation kinds were eliminated during the content cut pass. Pong was removed as a descent exhibit and project route (`/project/pong`), and relocated exclusively to the 404 page (`src/app/not-found.tsx`). `ShotGallery.tsx` and `ScaleStats.tsx` were deleted, along with all 16 static project screenshot files.*
+
 - [ ] **Step 5: `pixel-quest.ts` (§ 3.3)**
 
 ```ts
@@ -3147,6 +3149,8 @@ Acceptance: `curl -s localhost:3000/sitemap.xml | grep -c '<loc>'` → **13**. T
 Diffs the rendered **text content** of the high-tier route tree against the low-tier route tree and **fails the build on any difference**. § 8.3 states the DOM content is byte-identical across all three tiers; this is what makes that a fact rather than an intention.
 
 Acceptance: `node scripts/assert-tier-parity.mjs` → `parity OK, 13 routes`. Then deliberately break it — add a word to a low-tier-only branch — and confirm the script exits non-zero naming the route.
+
+*Deviation note (2026-09-10 content cut pass): Route count in `routes.ts`, `sitemap.ts`, and `assert-tier-parity.mjs` was reduced from 13 (and 12 in later iterations) to 11 static routes following the removal of `/project/pong` as a project route.*
 
 ### Task 6.6: Owner assets into their live slots
 

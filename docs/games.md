@@ -133,3 +133,4 @@ However, two active, complete from-scratch JavaScript/HTML5 Canvas game engines 
 ---
 
 *Deviation note (2026-09-09): Pixel Quest was removed at the owner's explicit request. Pong remains as the sole playable Canvas 2D engine in the portfolio.*
+*Deviation note (2026-09-10 content cut pass): Pong is no longer a descent exhibit at -124 m or a project route (`/project/pong`). It now lives exclusively on the 404 page (`src/app/not-found.tsx`). The audit record of the lost C++/SFML and Java 2D RPG originals in this document became load-bearing as the basis for the Engine layer's thesis copy.*

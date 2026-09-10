@@ -5,7 +5,6 @@ const REQUIRED_PROJECTS = [
   'deployment-platform',
   'ProAcademys',
   'GameZone',
-  'Pong',
   'Switchboard'
 ];
 
@@ -29,7 +28,6 @@ const ROUTES = [
   'out/project/deployment-platform.html',
   'out/project/proacademys.html',
   'out/project/gamezone.html',
-  'out/project/pong.html',
   'out/project/switchboard.html'
 ];
 
