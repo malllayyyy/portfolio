@@ -55,7 +55,7 @@ export function Descent() {
             </h2>
             <div className="mt-12 flex flex-col gap-12 lg:flex-row lg:gap-24">
               <PortraitSlot />
-              <div className="prose-measure">
+              <div className="prose-measure bg-field border border-hairline p-6 sm:p-8">
                 <p className="font-display text-t-base text-light">
                   {SITE.name} — {SITE.credential}.
                 </p>
@@ -66,7 +66,7 @@ export function Descent() {
                 </p>
               </div>
             </div>
-            <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-24">
+            <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-24 bg-field border border-hairline p-6 sm:p-8">
               <Contact />
               <KeyboardHelp />
             </div>
