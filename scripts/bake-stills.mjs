@@ -86,19 +86,35 @@ async function main() {
     await page.waitForSelector('canvas', { timeout: 10000 });
     await new Promise((r) => setTimeout(r, 1000));
 
-    // Hide DOM overlay elements so element screenshot captures clean WebGL canvas
+    // Exhaustive hide strategy:
+    // Every visible DOM element on the page lives inside <body>. By setting opacity: 0,
+    // visibility: hidden, pointer-events: none on every direct child of <body> except the
+    // top-level wrapper containing <canvas> (`body > *:not(:has(canvas))`), we guarantee
+    // that all current and future DOM chrome, overlays, cards, panels, HUD elements,
+    // and route announcers are completely hidden without maintaining fragile selector lists.
     await page.addStyleTag({
       content: `
-        header, main, nav, footer, a, .detail-panel-wrapper, #route-announcer {
+        body > *:not(:has(canvas)) {
           opacity: 0 !important;
           visibility: hidden !important;
+          pointer-events: none !important;
+        }
+        canvas {
+          opacity: 1 !important;
+          visibility: visible !important;
         }
       `,
     });
 
-    const canvasHandle = await page.$('canvas');
-    if (!canvasHandle) {
-      throw new Error('Canvas element handle not found');
+    // Verify canvas is still rendering after CSS injection
+    const isCanvasRendering = await page.evaluate(() => {
+      const c = document.querySelector('canvas');
+      if (!c) return false;
+      const s = window.getComputedStyle(c);
+      return s.visibility === 'visible' && parseFloat(s.opacity) > 0 && c.clientWidth > 0 && c.clientHeight > 0;
+    });
+    if (!isCanvasRendering) {
+      throw new Error('Canvas element is hidden or collapsed after hide CSS injection');
     }
 
     const publicStillsDir = path.join(process.cwd(), 'public', 'stills');
@@ -137,9 +153,11 @@ async function main() {
       await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
       // Element-scoped screenshot of canvas element
+      const canvasHandle = await page.waitForSelector('canvas', { timeout: 10000 });
+      if (!canvasHandle) {
+        throw new Error(`Canvas element handle not found for ${still.name}`);
+      }
       const pngBuf = await canvasHandle.screenshot({ type: 'png' });
-
-      // Encode to AVIF, tuning quality down if needed to respect <= 71680 B budget
       let quality = 78;
       let avifBuf = await sharp(pngBuf)
         .avif({ quality, effort: 7, chromaSubsampling: '4:2:0' })
