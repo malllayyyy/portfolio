@@ -4,27 +4,16 @@ export type Decision = {
   /** Prose, ~40 words. Every claim traces to docs/projects.md. */
   body: string;
   /** The file path that proves it. Rendered in JetBrains Mono at --t-sm. */
-  evidence: string[];
-};
-
-export type Shot = {
-  src: string;          // /shots/proacademys/desktop-home.avif
-  fallback: string;     // /shots/proacademys/desktop-home.webp
-  width: number;
-  height: number;
-  alt: string;
-  /** The specific claim this shot carries (§ 4.2). A shot with no claim is cut. */
-  claim: string;
+  evidence?: string[];
 };
 
 export type Presentation =
-  | { kind: 'screenshots'; shots: Shot[] }
+  | { kind: 'links' }
   | { kind: 'diagram'; component: 'deployment-platform' | 'gamezone' }
-  | { kind: 'node-field' }
-  | { kind: 'playable'; game: 'pong' };
+  | { kind: 'node-field' };
 
 export type Project = {
-  slug: 'deployment-platform' | 'proacademys' | 'gamezone' | 'pong' | 'switchboard';
+  slug: 'deployment-platform' | 'proacademys' | 'gamezone' | 'switchboard';
   title: string;
   layer: LayerId;
   /** camera.y of this exhibit, metres. Matches § 10.1 exactly. */
@@ -32,8 +21,6 @@ export type Project = {
   /** One line. Rendered at --t-md. */
   thesis: string;
   decisions: Decision[];
-  /** Rendered as a JetBrains Mono row. Label/value pairs only, no icons. */
-  scale: { label: string; value: string }[];
   links: { label: string; href: string }[];
   /** The single honest limitation line. Never omitted, never softened. */
   honesty: string;

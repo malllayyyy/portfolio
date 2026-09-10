@@ -1,15 +1,10 @@
 import type { Project, TraceFixture } from '@/content/types';
 import { SWITCHBOARD_TRACE } from '@/content/site';
 import { DecisionList } from './DecisionList';
-import { ScaleStats } from './ScaleStats';
 import { LinkRow } from './LinkRow';
-import { ShotGallery } from './ShotGallery';
 import { DeploymentPlatformDiagram } from '@/diagrams/DeploymentPlatformDiagram';
 import { GameZoneDiagram } from '@/diagrams/GameZoneDiagram';
-import { DiagramNodeIndex } from './DiagramNodeIndex';
-import { DiagramNodeLink } from './DiagramNodeLink';
 import { ProtocolTable } from './ProtocolTable';
-import { GameMount } from './GameMount';
 
 const trace: TraceFixture | null = SWITCHBOARD_TRACE;
 
@@ -39,6 +34,7 @@ function TraceStepList({ steps }: { steps: TraceFixture['steps'] }) {
     </div>
   );
 }
+
 export function ProjectArticle({ project: p }: { project: Project }) {
   return (
     <article id={p.slug} data-layer={p.layer} aria-labelledby={`${p.slug}-h`}>
@@ -64,20 +60,12 @@ export function ProjectArticle({ project: p }: { project: Project }) {
       <p className="mt-3 font-display text-t-md text-light prose-measure m-0">{p.thesis}</p>
       <LinkRow links={p.links} />
       <DecisionList decisions={p.decisions} />
-      <ScaleStats scale={p.scale} />
       <div className="mt-12">
-        {p.presentation.kind === 'screenshots' && <ShotGallery shots={p.presentation.shots} />}
         {p.presentation.kind === 'diagram' && p.presentation.component === 'deployment-platform' && (
-          <DiagramNodeLink>
-            <DeploymentPlatformDiagram />
-            <DiagramNodeIndex id="deployment-platform" />
-          </DiagramNodeLink>
+          <DeploymentPlatformDiagram />
         )}
         {p.presentation.kind === 'diagram' && p.presentation.component === 'gamezone' && (
-          <DiagramNodeLink>
-            <GameZoneDiagram />
-            <DiagramNodeIndex id="gamezone" />
-          </DiagramNodeLink>
+          <GameZoneDiagram />
         )}
         {p.presentation.kind === 'node-field' && (
           <>
@@ -91,20 +79,14 @@ export function ProjectArticle({ project: p }: { project: Project }) {
                 <dl className="mt-4 space-y-3 p-0 m-0 font-mono text-t-xs">
                   {[
                     ['tier', 'detectTier()'],
-                    ['cores', 'navigator.hardwareConcurrency'],
-                    ['device memory', 'navigator.deviceMemory'],
-                    ['pixel ratio', 'window.devicePixelRatio'],
-                    ['viewport / pointer', 'matchMedia'],
                     ['reduced motion', "matchMedia('(prefers-reduced-motion: reduce)')"],
-                    ['save-data', 'navigator.connection?.saveData'],
                     ['first paint', "PerformanceObserver 'paint' / first-contentful-paint"],
                     ['largest paint', "PerformanceObserver 'largest-contentful-paint'"],
                     ['document', 'PerformanceNavigationTiming.transferSize'],
                     ['3D chunk', 'PerformanceResourceTiming.encodedBodySize'],
-                    ['initial route', 'PerformanceResourceTiming sum(encodedBodySize)'],
+                    ['total page fetch', 'PerformanceResourceTiming sum(encodedBodySize)'],
                     ['frame mean', 'rolling 120-frame rAF delta'],
                     ['layers crossed', 'camera depth(t) or IntersectionObserver'],
-                    ['this reading', 'performance.now()'],
                   ].map(([label, source]) => (
                     <div
                       key={label}
@@ -123,7 +105,6 @@ export function ProjectArticle({ project: p }: { project: Project }) {
             </div>
           </>
         )}
-        {p.presentation.kind === 'playable' && <GameMount game={p.presentation.game} />}
       </div>
       <p className="mt-12 font-display text-t-base text-muted prose-measure border-l border-hairline pl-6 m-0">
         {p.honesty}

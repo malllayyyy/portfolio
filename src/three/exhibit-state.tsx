@@ -18,7 +18,6 @@ export type ExhibitSlug =
   | 'deployment-platform'
   | 'proacademys'
   | 'gamezone'
-  | 'pong'
   | 'switchboard';
 
 export interface ExhibitState {
