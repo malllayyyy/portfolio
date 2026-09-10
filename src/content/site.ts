@@ -36,7 +36,7 @@ export const SITE = {
  * § 12 items 6 and 7.
  */
 export const RESUME_PDF_PRESENT = false;
-export const PORTRAIT_PRESENT = false;
+export const PORTRAIT_PRESENT = true;
 
 /** OQ3 deferred. Stays null until a real recorded session is committed. */
 export const SWITCHBOARD_TRACE = null;
