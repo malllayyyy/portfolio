@@ -14,13 +14,11 @@ export function GameZoneDiagram() {
       <title id="gz-title">GameZone Architecture</title>
       <desc id="gz-desc">
         Two clients — a Capacitor 6 Android app and a desktop browser — run the same Vite
-        React bundle, which calls backend/server.js, an Express API of roughly fifteen
-        endpoints, which reads and writes a SQLite database of seven tables: stations,
-        sessions, settings, activities, snacks, cafeteria_expenses and revenue_history.
-        SQLite is configured for a slow spinning disk on Windows 7 running Node v13.14.0:
-        journal_mode WAL, synchronous NORMAL, temp_store MEMORY, cache_size -10000, and
-        startup seeding wrapped in a single transaction. A separate strip shows the
-        mid-session rollover rule: a station is occupied, a request to add-game arrives,
+        React bundle, which calls backend/server.js, an Express API reading and writing a
+        SQLite database. SQLite is configured for a slow spinning disk on Windows 7 running
+        Node v13.14.0: journal_mode WAL, synchronous NORMAL, temp_store MEMORY, cache_size
+        -10000, and startup seeding wrapped in a single transaction. A separate strip shows
+        the mid-session rollover rule: a station is occupied, a request to add-game arrives,
         the played overage is computed and deducted from the new activity's duration, and
         occupancy is never broken.
       </desc>
@@ -138,7 +136,7 @@ export function GameZoneDiagram() {
       {/* Layer C: Nodes & Shapes */}
       <g id="layer-nodes">
         {/* M1: Android app */}
-        <g id="node-m1" data-node="node-m1" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m1">
           <title>Android app</title>
           <desc>Capacitor 6 Android app client with package ID com.gamezone.app</desc>
           <rect
@@ -160,7 +158,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M2: desktop browser */}
-        <g id="node-m2" data-node="node-m2" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m2">
           <title>desktop browser</title>
           <desc>Desktop web browser client running the Vite React application</desc>
           <rect
@@ -179,7 +177,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M3: same Vite bundle */}
-        <g id="node-m3" data-node="node-m3" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m3">
           <title>same Vite bundle</title>
           <desc>Shared React 18 + Vite client bundle serving both clients</desc>
           <rect
@@ -201,9 +199,9 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M4: backend/server.js */}
-        <g id="node-m4" data-node="node-m4" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m4">
           <title>backend/server.js</title>
-          <desc>Express backend server exposing approximately 15 REST endpoints</desc>
+          <desc>Express backend server for the POS</desc>
           <rect
             x="590"
             y="95"
@@ -218,14 +216,14 @@ export function GameZoneDiagram() {
             backend/server.js
           </text>
           <text x="685" y="135" textAnchor="middle" fill="#8FA0B0" fontSize="11">
-            Express · ~15 endpoints
+            Express
           </text>
         </g>
 
         {/* M5: SQLite */}
-        <g id="node-m5" data-node="node-m5" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m5">
           <title>SQLite</title>
-          <desc>SQLite database storing 7 tables: stations, sessions, settings, activities, snacks, cafeteria_expenses, revenue_history</desc>
+          <desc>SQLite database, tuned for a spinning disk</desc>
           <path
             d="M 590 250 v 80 a 95 16 0 0 0 190 0 v -80"
             fill="#10151C"
@@ -256,7 +254,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* M6: Start-GameZone.bat */}
-        <g id="node-m6" data-node="node-m6" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-m6">
           <title>Start-GameZone.bat</title>
           <desc>One-click batch script launcher running locally on the cafe machine</desc>
           <rect
@@ -275,7 +273,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* Pragma Callout Box */}
-        <g id="pragma-callout-box" data-node="pragma-callout-box" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="pragma-callout-box">
           <rect
             x="290"
             y="325"
@@ -307,7 +305,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R1: station occupied */}
-        <g id="node-r1" data-node="node-r1" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-r1">
           <title>station occupied</title>
           <desc>Station currently has an active gaming session</desc>
           <rect
@@ -326,7 +324,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R2: POST /api/sessions/add-game */}
-        <g id="node-r2" data-node="node-r2" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-r2">
           <title>POST /api/sessions/add-game</title>
           <desc>API call triggered when adding or switching game during active session</desc>
           <rect
@@ -345,7 +343,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R3: overage computed */}
-        <g id="node-r3" data-node="node-r3" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-r3">
           <title>overage computed</title>
           <desc>System computes played overage time from initial activity duration</desc>
           <rect
@@ -364,7 +362,7 @@ export function GameZoneDiagram() {
         </g>
 
         {/* R4: deducted from new activity */}
-        <g id="node-r4" data-node="node-r4" className="cursor-pointer hover:opacity-80 transition-opacity">
+        <g id="node-r4">
           <title>deducted from new activity</title>
           <desc>Computed overage is deducted from the new activity duration</desc>
           <rect
