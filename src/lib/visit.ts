@@ -8,14 +8,16 @@ export interface MetricRow {
   dark: boolean;
 }
 
+const DARK_ROW: MetricRow = {
+  label: '',
+  value: 'not exposed',
+  source: '',
+  dark: true,
+};
+
 export interface VisitSnapshot {
   tier: MetricRow;
-  cores: MetricRow;
-  deviceMemory: MetricRow;
-  pixelRatio: MetricRow;
-  viewportPointer: MetricRow;
   reducedMotion: MetricRow;
-  saveData: MetricRow;
   fcp: MetricRow;
   lcp: MetricRow;
   documentTransfer: MetricRow;
@@ -23,18 +25,19 @@ export interface VisitSnapshot {
   initialRouteBytes: MetricRow;
   frameMean: MetricRow;
   layersCrossed: MetricRow;
-  thisReading: MetricRow;
   rows: MetricRow[];
+  // Retained on snapshot interface for legacy subcomponents (e.g. VisitField 3D mesh)
+  cores: MetricRow;
+  deviceMemory: MetricRow;
+  pixelRatio: MetricRow;
+  viewportPointer: MetricRow;
+  saveData: MetricRow;
+  thisReading: MetricRow;
 }
 
 const SERVER_SNAPSHOT: VisitSnapshot = {
   tier: { label: 'tier', value: 'measured on load', source: 'detectTier()', dark: false },
-  cores: { label: 'cores', value: 'measured on load', source: 'navigator.hardwareConcurrency', dark: false },
-  deviceMemory: { label: 'device memory', value: 'measured on load', source: 'navigator.deviceMemory', dark: false },
-  pixelRatio: { label: 'pixel ratio', value: 'measured on load', source: 'window.devicePixelRatio', dark: false },
-  viewportPointer: { label: 'viewport / pointer', value: 'measured on load', source: 'matchMedia', dark: false },
   reducedMotion: { label: 'reduced motion', value: 'measured on load', source: "matchMedia('(prefers-reduced-motion: reduce)')", dark: false },
-  saveData: { label: 'save-data', value: 'measured on load', source: 'navigator.connection?.saveData', dark: false },
   fcp: { label: 'first paint', value: 'measured on load', source: "PerformanceObserver 'paint' / first-contentful-paint", dark: false },
   lcp: { label: 'largest paint', value: 'measured on load', source: "PerformanceObserver 'largest-contentful-paint'", dark: false },
   documentTransfer: { label: 'document', value: 'measured on load', source: 'PerformanceNavigationTiming.transferSize', dark: false },
@@ -42,17 +45,17 @@ const SERVER_SNAPSHOT: VisitSnapshot = {
   initialRouteBytes: { label: 'total page fetch', value: 'measured on load', source: 'PerformanceResourceTiming sum(encodedBodySize)', dark: false },
   frameMean: { label: 'frame mean', value: 'measured on load', source: 'rolling 120-frame rAF delta', dark: false },
   layersCrossed: { label: 'layers crossed', value: 'measured on load', source: 'camera depth(t) or IntersectionObserver', dark: false },
-  thisReading: { label: 'this reading', value: 'measured on load', source: 'performance.now()', dark: false },
+  cores: DARK_ROW,
+  deviceMemory: DARK_ROW,
+  pixelRatio: DARK_ROW,
+  viewportPointer: DARK_ROW,
+  saveData: DARK_ROW,
+  thisReading: DARK_ROW,
   rows: [],
 };
 SERVER_SNAPSHOT.rows = [
   SERVER_SNAPSHOT.tier,
-  SERVER_SNAPSHOT.cores,
-  SERVER_SNAPSHOT.deviceMemory,
-  SERVER_SNAPSHOT.pixelRatio,
-  SERVER_SNAPSHOT.viewportPointer,
   SERVER_SNAPSHOT.reducedMotion,
-  SERVER_SNAPSHOT.saveData,
   SERVER_SNAPSHOT.fcp,
   SERVER_SNAPSHOT.lcp,
   SERVER_SNAPSHOT.documentTransfer,
@@ -60,7 +63,6 @@ SERVER_SNAPSHOT.rows = [
   SERVER_SNAPSHOT.initialRouteBytes,
   SERVER_SNAPSHOT.frameMean,
   SERVER_SNAPSHOT.layersCrossed,
-  SERVER_SNAPSHOT.thisReading,
 ];
 
 let listeners = new Set<() => void>();
@@ -95,11 +97,6 @@ function updateSnapshot() {
   const tTier = detectTier();
   const evidence = getTierEvidence();
 
-  const nav = navigator as Navigator & {
-    deviceMemory?: number;
-    connection?: { saveData?: boolean };
-  };
-
   // 1. Tier
   const tierRow: MetricRow = {
     label: 'tier',
@@ -108,44 +105,7 @@ function updateSnapshot() {
     dark: false,
   };
 
-  // 2. Cores
-  const coresVal = nav.hardwareConcurrency;
-  const coresRow: MetricRow = {
-    label: 'cores',
-    value: typeof coresVal === 'number' ? `${coresVal}` : 'not exposed by this browser',
-    source: 'navigator.hardwareConcurrency',
-    dark: typeof coresVal !== 'number',
-  };
-
-  // 3. Device memory
-  const memVal = nav.deviceMemory;
-  const memRow: MetricRow = {
-    label: 'device memory',
-    value: typeof memVal === 'number' ? `${memVal} GB` : 'not exposed by this browser',
-    source: 'navigator.deviceMemory',
-    dark: typeof memVal !== 'number',
-  };
-
-  // 4. Pixel ratio
-  const dpr = window.devicePixelRatio || 1;
-  const dprRow: MetricRow = {
-    label: 'pixel ratio',
-    value: `${dpr}`,
-    source: 'window.devicePixelRatio',
-    dark: false,
-  };
-
-  // 5. Viewport / pointer
-  const minW = matchMedia('(min-width: 1024px)').matches;
-  const pointerFine = matchMedia('(pointer: fine)').matches;
-  const vpRow: MetricRow = {
-    label: 'viewport / pointer',
-    value: `${minW ? '≥1024px' : '<1024px'}, ${pointerFine ? 'fine pointer' : 'coarse pointer'}`,
-    source: 'matchMedia',
-    dark: false,
-  };
-
-  // 6. Reduced motion
+  // 2. Reduced motion
   const motionMode = getMotion();
   const motionRow: MetricRow = {
     label: 'reduced motion',
@@ -154,16 +114,7 @@ function updateSnapshot() {
     dark: false,
   };
 
-  // 7. Save data
-  const saveData = nav.connection?.saveData;
-  const saveDataRow: MetricRow = {
-    label: 'save-data',
-    value: typeof saveData === 'boolean' ? (saveData ? 'on' : 'off') : 'not exposed by this browser',
-    source: 'navigator.connection?.saveData',
-    dark: typeof saveData !== 'boolean',
-  };
-
-  // 8. FCP
+  // 3. FCP
   const fcpRow: MetricRow = {
     label: 'first paint',
     value: observedFcpMs !== null ? `${Math.round(observedFcpMs)} ms` : 'not exposed by this browser',
@@ -171,7 +122,7 @@ function updateSnapshot() {
     dark: observedFcpMs === null,
   };
 
-  // 9. LCP
+  // 4. LCP
   const lcpRow: MetricRow = {
     label: 'largest paint',
     value: observedLcpMs !== null ? `${Math.round(observedLcpMs)} ms` : 'not exposed by this browser',
@@ -179,7 +130,7 @@ function updateSnapshot() {
     dark: observedLcpMs === null,
   };
 
-  // 10. Document transfer
+  // 5. Document transfer
   const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
   let docVal = 'not exposed by this browser';
   let docDark = true;
@@ -202,7 +153,7 @@ function updateSnapshot() {
     dark: docDark,
   };
 
-  // 11. Deferred 3D chunk
+  // 6. Deferred 3D chunk
   let chunkVal = 'not exposed by this browser';
   let chunkDark = true;
   let chunkSource = 'PerformanceResourceTiming.encodedBodySize';
@@ -250,7 +201,7 @@ function updateSnapshot() {
     dark: chunkDark,
   };
 
-  // 12. Initial route bytes (total page fetch: JS, CSS, fonts, document, polyfills)
+  // 7. Initial route bytes (total page fetch: JS, CSS, fonts, document, polyfills)
   const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
   const dcl = navEntry?.domContentLoadedEventEnd || 10000;
   const initialResources = resources.filter((r) => r.startTime <= dcl);
@@ -280,7 +231,7 @@ function updateSnapshot() {
     dark: initialDark,
   };
 
-  // 13. Frame mean
+  // 8. Frame mean
   let frameVal = 'not exposed by this browser';
   let frameDark = true;
   if (tTier === 'low') {
@@ -301,7 +252,7 @@ function updateSnapshot() {
     dark: frameDark,
   };
 
-  // 14. Layers crossed
+  // 9. Layers crossed
   const deepestDatum = LAYER_DATUMS[maxLayerIndexReached - 1] ?? 0;
   const layersRow: MetricRow = {
     label: 'layers crossed',
@@ -310,23 +261,9 @@ function updateSnapshot() {
     dark: false,
   };
 
-  // 15. Time on page
-  const nowSec = Math.round(performance.now() / 1000);
-  const timeRow: MetricRow = {
-    label: 'this reading',
-    value: `taken ${nowSec} s into the visit`,
-    source: 'performance.now()',
-    dark: false,
-  };
-
   const rows = [
     tierRow,
-    coresRow,
-    memRow,
-    dprRow,
-    vpRow,
     motionRow,
-    saveDataRow,
     fcpRow,
     lcpRow,
     docRow,
@@ -334,17 +271,11 @@ function updateSnapshot() {
     initialRow,
     frameRow,
     layersRow,
-    timeRow,
   ];
 
   currentSnapshot = {
     tier: tierRow,
-    cores: coresRow,
-    deviceMemory: memRow,
-    pixelRatio: dprRow,
-    viewportPointer: vpRow,
     reducedMotion: motionRow,
-    saveData: saveDataRow,
     fcp: fcpRow,
     lcp: lcpRow,
     documentTransfer: docRow,
@@ -352,7 +283,12 @@ function updateSnapshot() {
     initialRouteBytes: initialRow,
     frameMean: frameRow,
     layersCrossed: layersRow,
-    thisReading: timeRow,
+    cores: DARK_ROW,
+    deviceMemory: DARK_ROW,
+    pixelRatio: DARK_ROW,
+    viewportPointer: DARK_ROW,
+    saveData: DARK_ROW,
+    thisReading: DARK_ROW,
     rows,
   };
 }
@@ -433,6 +369,7 @@ function initObservers() {
   }
 
   // 3. Frame rate measuring loop (if motion is on and tier !== 'low')
+  const isLowTier = detectTier() === 'low';
   const stepFrame = (now: number) => {
     if (lastFrameTime > 0) {
       const dtMs = now - lastFrameTime;
@@ -449,12 +386,12 @@ function initObservers() {
     }
     lastFrameTime = now;
 
-    if (listeners.size > 0 && getMotion() !== 'off' && detectTier() !== 'low') {
+    if (listeners.size > 0 && getMotion() !== 'off' && !isLowTier) {
       requestAnimationFrame(stepFrame);
     }
   };
 
-  if (getMotion() !== 'off' && detectTier() !== 'low') {
+  if (getMotion() !== 'off' && !isLowTier) {
     requestAnimationFrame(stepFrame);
   }
 
