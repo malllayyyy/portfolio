@@ -66,7 +66,6 @@ export function DepthPalette({ exhibits, isOpen, onClose }: DepthPaletteProps) {
       const matchingProjects = exhibits.filter((p) => {
         if (layer.id === 'surface' && (p.slug === 'deployment-platform' || p.slug === 'proacademys')) return true;
         if (layer.id === 'device' && p.slug === 'gamezone') return true;
-        if (layer.id === 'engine' && p.slug === 'pong') return true;
         if (layer.id === 'reasoning' && p.slug === 'switchboard') return true;
         return false;
       });

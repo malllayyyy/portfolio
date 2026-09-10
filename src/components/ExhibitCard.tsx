@@ -26,9 +26,6 @@ export type ExhibitCardProps = {
   /** Presentation kind of the exhibit (overrides project.presentation.kind). */
   presentationKind?: Presentation['kind'];
 
-  /** Explicit override to flag card as an engine card carrying accessibility disclosure. */
-  isEngine?: boolean;
-
   /** Action callback fired when the card or Open affordance is activated. */
   onOpen?: (slug?: string) => void;
 
@@ -40,22 +37,14 @@ export type ExhibitCardProps = {
 
   /**
    * Accessibility tabIndex for the actionable Open affordance button.
-   * Default: -1.
-   *
-   * Accessibility Note (§ 4.1, § 9.1):
-   * The exhibit card is supplementary to the exhibit's focusable DOM proxy button
-   * (managed in Task 5.1). To prevent duplicate/competing tab stops in document focus order,
-   * the card's interactive control defaults to `tabIndex={-1}`. Pointer and touch users can click
-   * the card or button directly, while keyboard navigation reaches the exhibit through
-   * the Task 5.1 focusable list.
+   * Default: -1 (out of tab order; accessible via keyboard proxy nav).
    */
   tabIndex?: number;
 };
 
 /**
  * Compact exhibit card (§ 4.1, § 7 row 8) displayed when camera is near an exhibit.
- * Fades in at the right edge with title, thesis, Open affordance, and optional
- * Engine animation accessibility disclosure.
+ * Fades in at the right edge with title, thesis, and Open affordance.
  */
 export function ExhibitCard({
   project,
@@ -64,7 +53,6 @@ export function ExhibitCard({
   slug,
   layer,
   presentationKind,
-  isEngine,
   onOpen,
   isVisible = true,
   className,
@@ -74,13 +62,6 @@ export function ExhibitCard({
   const derivedThesis = thesis ?? project?.thesis ?? '';
   const derivedSlug = slug ?? project?.slug;
   const derivedLayer = layer ?? project?.layer;
-  const derivedKind = presentationKind ?? project?.presentation?.kind;
-
-  const isEngineCard =
-    isEngine ??
-    (derivedLayer === 'engine' ||
-      derivedKind === 'playable' ||
-      derivedSlug === 'pong');
 
   const [shouldRender, setShouldRender] = useState(isVisible);
   const [isExiting, setIsExiting] = useState(false);
@@ -204,13 +185,6 @@ export function ExhibitCard({
         {derivedThesis && (
           <p className="font-display text-t-sm text-muted leading-normal">
             {derivedThesis}
-          </p>
-        )}
-
-        {/* Accessibility disclosure for Engine cards (§ 7 row 15) */}
-        {isEngineCard && (
-          <p className="font-mono text-t-xs text-muted border-t border-hairline pt-2 mt-1">
-            Playing this starts an animation
           </p>
         )}
       </div>

@@ -45,7 +45,7 @@ export function GameMount({ game }: GameMountProps) {
 
       {/* Control bar */}
       <div className="flex items-center justify-between border-b border-hairline bg-field px-4 py-2 text-t-xs text-muted font-mono">
-        <span>{gameTitle} — FIXED TIMESTEP LOOP (60 HZ)</span>
+        <span>{gameTitle}</span>
         <button
           id={`${containerId}-exit`}
           type="button"
