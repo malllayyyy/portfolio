@@ -7,18 +7,18 @@ export function PortraitSlot() {
         <source srcSet="/portrait.avif" type="image/avif" />
         <img
           src="/portrait.webp"
-          width={320}
-          height={320}
+          width={280}
+          height={350}
           loading="lazy"
           alt={`${SITE.name}, ${SITE.credential}`}
-          className="w-80 h-80 object-cover border border-hairline"
+          className="w-[280px] h-[350px] shrink-0 object-cover border border-hairline"
         />
       </picture>
     );
   }
   return (
     <div
-      className="w-80 h-80 bg-strata border border-hairline flex flex-col justify-end p-6"
+      className="w-[280px] h-[350px] shrink-0 bg-strata border border-hairline flex flex-col justify-end p-6"
       role="img"
       aria-label={`${SITE.name}, ${SITE.credential}`}
     >
