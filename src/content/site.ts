@@ -11,14 +11,14 @@ export const SITE = {
 
   /** OQ2: § 13.1 candidate B, demoted to the sub-line beneath the hero. */
   heroSub:
-    'Four layers of the same stack: a deploy platform, a 37-table migration, two game engines, and a control plane for AI agents.',
+    'Four layers of the same stack: a deploy platform, a rewrite of a client\'s e-learning site, a POS that runs a gaming cafe, and a control plane for AI agents.',
 
   /** § 13.1 standing sub-line — not itself pending, sits under heroSub. */
   standing: 'B.Tech CSE, IIIT Naya Raipur. Scroll to descend — four layers, one shot.',
 
   /** OQ2: § 13.2 candidate 2 — search + recruiters. 150 ch. */
   metaDescription:
-    'Malay Chaudhary, B.Tech CSE at IIIT Naya Raipur. A self-hosted PaaS, a MERN rewrite of a legacy platform, two game engines, and an agent switchboard.',
+    'Malay Chaudhary, B.Tech CSE at IIIT Naya Raipur. A self-hosted PaaS, a MERN rewrite of a legacy platform, a cafe POS, and an agent switchboard.',
 
   /** OQ2: § 13.2 candidate 3 — social. 145 ch. */
   ogDescription:

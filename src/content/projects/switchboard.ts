@@ -14,30 +14,19 @@ export const switchboard: Project = {
   title: 'Switchboard',
   layer: 'reasoning',
   depth: -278,
-  thesis: 'A real-time control plane for Oh My Pi subagents — steer a running agent directly, swap its model mid-conversation, watch the roster.',
+  thesis: 'A control plane for Oh My Pi subagents \u2014 steer a running agent directly, swap its model mid-conversation, watch the roster.',
   decisions: [
     {
-      body: 'Routing a prompt through the orchestrator costs a turn and the latency of one. Switchboard holds live `AgentSession` references in Bun process memory via `AgentRegistry.global()` and calls `.steer()` or `.prompt()` on the target subagent directly, bypassing the orchestrator entirely.',
-      evidence: ['server/index.ts', 'server/agent-manager.ts'],
-    },
-    {
-      body: '`AgentSession.setModel()` is called on an active session mid-conversation, over the WebSocket. No restart, no file edit, no lost context.',
-      evidence: ['server/agent-manager.ts', 'shared/protocol.ts'],
-    },
-    {
-      body: 'Parked and background subagents outlive the dashboard. `registerPersistedSubagents` and `ensurePersistedRoster` periodically resync the roster from the `~/.omp/agent/sessions/*.jsonl` transcripts, so a restart does not lose the board.',
+      body: 'Sending a prompt through the orchestrator costs a whole turn before the subagent even sees it. Switchboard keeps the live AgentSession objects in process memory and calls .steer() or .prompt() on the target directly, so the orchestrator is never in the path.',
       evidence: ['server/agent-manager.ts'],
     },
-  ],
-  scale: [
-    { label: 'source files',    value: '~15 TS/TSX' },
-    { label: 'LOC',             value: '~1,800' },
-    { label: 'database tables', value: '0 — live in-memory state plus .jsonl transcripts' },
-    { label: 'protocol',        value: '5 client message types, 7 server message types' },
+    {
+      body: 'You can change a session\u2019s model while it is mid-conversation, over the socket. No restart, no config edit, no lost context.',
+    },
   ],
   links: [
     { label: 'GitHub', href: 'https://github.com/malllayyyy/swtchboard' },
   ],
-  honesty: 'Still being built. The exhibit is the protocol itself — 12 message types — not a recording of a session I have not finished having.',
+  honesty: 'Still being built. There is no demo yet, so the protocol is the exhibit.',
   presentation: { kind: 'node-field' },
 };

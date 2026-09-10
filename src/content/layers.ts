@@ -14,7 +14,7 @@ export const LAYERS: Layer[] = [
   {
     id: 'engine', name: 'ENGINE', domain: 'Game', datum: -120, t: 0.600,
     accentVar: '--color-engine-accent',
-    thesis: 'Everything above this is a frame that can afford to be late. Down here it can\u2019t.',
+    thesis: 'This is where I started \u2014 a Pong I wrote in Canvas 2D to learn game dev, and a C++/SFML one and a Java one before it that I no longer have. The Pong still runs; it lives on the 404 page.',
   },
   {
     id: 'reasoning', name: 'REASONING', domain: 'Agentic AI', datum: -260, t: 0.870,
