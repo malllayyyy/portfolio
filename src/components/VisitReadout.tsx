@@ -46,16 +46,16 @@ export function VisitReadout() {
             <dt className="text-muted shrink-0 w-36 uppercase tracking-wider">{row.label}</dt>
             <dd
               className={`font-semibold shrink-0 sm:text-right ${
-                row.dark ? 'text-muted/80 font-normal italic' : 'text-light'
+                row.dark ? 'text-muted font-normal italic' : 'text-light'
               }`}
             >
               {row.value}
             </dd>
-            <dd className="text-muted/70 truncate text-right text-t-xs">{row.source}</dd>
+            <dd className="text-muted truncate text-right text-t-xs">{row.source}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-4 font-display text-t-xs text-muted/90 italic m-0">
+      <p className="mt-4 font-display text-t-xs text-muted italic m-0">
         Every number above was measured in your browser on this page load.
       </p>
       {isReducedMotion && (

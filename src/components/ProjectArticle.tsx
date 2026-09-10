@@ -25,7 +25,7 @@ function TraceStepList({ steps }: { steps: TraceFixture['steps'] }) {
             <span className="text-muted truncate">
               {step.from} → {step.to}
             </span>
-            <span className="text-muted/80 truncate max-w-[200px]">
+            <span className="text-muted truncate max-w-[200px]">
               {step.summary}
             </span>
           </li>
@@ -37,7 +37,12 @@ function TraceStepList({ steps }: { steps: TraceFixture['steps'] }) {
 
 export function ProjectArticle({ project: p }: { project: Project }) {
   return (
-    <article id={p.slug} data-layer={p.layer} aria-labelledby={`${p.slug}-h`}>
+    <article
+      id={p.slug}
+      data-layer={p.layer}
+      aria-labelledby={`${p.slug}-h`}
+      className="bg-field border border-hairline p-6 sm:p-8"
+    >
       {p.slug === 'gamezone' ? (
         <div className="flex items-center gap-4">
           <img
@@ -94,11 +99,11 @@ export function ProjectArticle({ project: p }: { project: Project }) {
                     >
                       <dt className="text-muted shrink-0 w-36 uppercase tracking-wider">{label}</dt>
                       <dd className="font-semibold text-light shrink-0 sm:text-right">measured on load</dd>
-                      <dd className="text-muted/70 truncate text-right text-t-xs">{source}</dd>
+                      <dd className="text-muted truncate text-right text-t-xs">{source}</dd>
                     </div>
                   ))}
                 </dl>
-                <p className="mt-4 font-display text-t-xs text-muted/90 italic m-0">
+                <p className="mt-4 font-display text-t-xs text-muted italic m-0">
                   Every number above was measured in your browser on this page load.
                 </p>
               </div>

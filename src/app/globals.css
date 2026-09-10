@@ -247,3 +247,9 @@ html[data-motion="off"] .exhibit-card-animated {
   transform: none !important;
   transition-duration: 0s !important;
 }
+
+.detail-panel article {
+  background-color: transparent;
+  border-style: none;
+  padding: 0;
+}
