@@ -30,16 +30,24 @@ const GHOST_VERTEX_SHADER = `
 attribute vec3 aOffset;
 attribute vec3 aScale;
 attribute vec3 aSpeed;
+attribute vec3 aTarget;
 
 uniform float uTime;
+uniform float uFocus;
+
 void main() {
   vec3 pos = position * aScale;
   float t = uTime * aSpeed.x + aOffset.x;
-  pos.x += sin(t) * 1.5;
-  pos.y += cos(uTime * aSpeed.y + aOffset.y) * 1.2;
-  pos.z += sin(uTime * aSpeed.z + aOffset.z) * 1.5;
+  vec3 drift;
+  drift.x = sin(t) * 1.5;
+  drift.y = cos(uTime * aSpeed.y + aOffset.y) * 1.2;
+  drift.z = sin(uTime * aSpeed.z + aOffset.z) * 1.5;
+
+  pos += drift * (1.0 - uFocus);
 
   vec4 worldPosition = instanceMatrix * vec4(pos, 1.0);
+  worldPosition.xyz = mix(worldPosition.xyz, aTarget + position * 0.5, uFocus);
+
   gl_Position = projectionMatrix * viewMatrix * worldPosition;
   #include <logdepthbuf_vertex>
 }
@@ -180,6 +188,7 @@ export function Engine() {
     const offsets = new Float32Array(40 * 3);
     const scales = new Float32Array(40 * 3);
     const speeds = new Float32Array(40 * 3);
+    const targets = new Float32Array(40 * 3);
 
     for (let i = 0; i < 40; i++) {
       const seed = i * 1.61803398875;
@@ -197,7 +206,62 @@ export function Engine() {
       speeds[i * 3 + 2] = 0.4 + Math.abs((Math.sin(seed * 27.8) * 43758.5453) % 1) * 0.6;
     }
 
-    return { offsets, scales, speeds };
+    // 40 target positions at y = -124 for Pong court layout
+    // Left paddle (5 points): x = -7.2, z = -2.0 .. 2.0
+    for (let i = 0; i < 5; i++) {
+      targets[i * 3] = -7.2;
+      targets[i * 3 + 1] = -124;
+      targets[i * 3 + 2] = -2.0 + i * 1.0;
+    }
+    // Right paddle (5 points): x = 7.2, z = -2.0 .. 2.0
+    for (let i = 0; i < 5; i++) {
+      const idx = 5 + i;
+      targets[idx * 3] = 7.2;
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = -2.0 + i * 1.0;
+    }
+    // Centre line (7 points): x = 0, z = -4.2 .. 4.2
+    for (let i = 0; i < 7; i++) {
+      const idx = 10 + i;
+      targets[idx * 3] = 0;
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = -4.2 + i * 1.4;
+    }
+    // Court boundary (22 points around 16 x 10 rect)
+    // Top edge (7 points): z = -5, x = -8 + i * (16 / 6)
+    for (let i = 0; i < 7; i++) {
+      const idx = 17 + i;
+      targets[idx * 3] = -8 + i * (16 / 6);
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = -5;
+    }
+    // Bottom edge (7 points): z = 5, x = -8 + i * (16 / 6)
+    for (let i = 0; i < 7; i++) {
+      const idx = 24 + i;
+      targets[idx * 3] = -8 + i * (16 / 6);
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = 5;
+    }
+    // Left edge (4 points): x = -8, z = -3 + i * 2
+    for (let i = 0; i < 4; i++) {
+      const idx = 31 + i;
+      targets[idx * 3] = -8;
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = -3 + i * 2;
+    }
+    // Right edge (4 points): x = 8, z = -3 + i * 2
+    for (let i = 0; i < 4; i++) {
+      const idx = 35 + i;
+      targets[idx * 3] = 8;
+      targets[idx * 3 + 1] = -124;
+      targets[idx * 3 + 2] = -3 + i * 2;
+    }
+    // Ball (1 point): x = 2.4, z = -1.1
+    targets[39 * 3] = 2.4;
+    targets[39 * 3 + 1] = -124;
+    targets[39 * 3 + 2] = -1.1;
+
+    return { offsets, scales, speeds, targets };
   }, []);
 
   const ghostGeometry = useMemo(() => {
@@ -214,6 +278,10 @@ export function Engine() {
       'aSpeed',
       new Float32BufferAttribute(ghostAttributes.speeds, 3)
     );
+    baseGeo.setAttribute(
+      'aTarget',
+      new Float32BufferAttribute(ghostAttributes.targets, 3)
+    );
     return baseGeo;
   }, [ghostAttributes]);
 
@@ -221,6 +289,7 @@ export function Engine() {
     const mat = new ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
+        uFocus: { value: 0 },
         uColor: { value: new Color('#FF5F56') },
       },
       vertexShader: GHOST_VERTEX_SHADER,
@@ -251,10 +320,19 @@ export function Engine() {
     toInterior(ghostMeshRef.current);
   }, []);
 
-  // Update shared uTime uniform in useFrame (ZERO allocation per frame).
+  // Update shared uTime and uFocus uniforms in useFrame (ZERO allocation per frame).
   useFrame((state) => {
     if (ghostMaterialRef.current) {
       ghostMaterialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+      const cameraY = state.camera.position.y;
+      const d = Math.abs(cameraY + 124);
+      const reduced =
+        typeof document !== 'undefined' &&
+        document.documentElement.dataset.motion === 'off';
+      const f = reduced
+        ? (d < 8 ? 1 : 0)
+        : 1 - Math.min(1, Math.max(0, (d - 2) / 8));
+      ghostMaterialRef.current.uniforms.uFocus.value = f;
     }
   });
 
