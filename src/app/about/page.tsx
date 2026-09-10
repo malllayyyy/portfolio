@@ -19,10 +19,9 @@ export default function AboutPage() {
               {SITE.name} — {SITE.credential}.
             </p>
             <p className="mt-6 font-display text-t-base text-light">
-              Four domains, presented as four depths of one stack: a self-hosted PaaS and a MERN
-              rewrite at the surface, a gaming-cafe POS on the device below it, a Canvas 2D
-              engine below that, and a control plane for AI agents at the bottom. Each layer is
-              causally responsible for the one above it, and the projects are the evidence.
+              Four domains, four depths of one stack: a self-hosted PaaS and a client rewrite at the
+              surface, a gaming-cafe POS below that, the games I learned on further down, and a
+              control plane for AI agents at the bottom.
             </p>
           </div>
         </div>

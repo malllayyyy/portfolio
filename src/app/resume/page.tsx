@@ -113,16 +113,6 @@ export default function ResumePage() {
                 </div>
                 <p className="mt-4 font-display text-t-base text-light">{project.thesis}</p>
 
-                {/* Technical Scale / Specs */}
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-t-xs">
-                  {project.scale.map((s) => (
-                    <div key={s.label} className="flex gap-2">
-                      <span className="text-muted">{s.label}:</span>
-                      <span className="text-light">{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-
                 {/* Key Engineering Decisions */}
                 <div className="mt-4 pt-4 border-t border-hairline flex flex-col gap-2">
                   {project.decisions.map((d, i) => (
