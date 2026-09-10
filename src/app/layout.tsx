@@ -42,6 +42,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var o=localStorage.getItem('substrate-tier');if(o==='low'||o==='mid'||o==='high'){document.documentElement.dataset.tier=o;return;}var n=navigator,s=0,c=n.hardwareConcurrency||2,m=n.deviceMemory||2;if(c>=8)s+=2;else if(c>=4)s+=1;if(m>=8)s+=2;else if(m>=4)s+=1;if(window.matchMedia('(min-width: 1024px)').matches)s+=1;if(window.matchMedia('(pointer: fine)').matches)s+=1;if(window.devicePixelRatio<=2)s+=1;if(n.connection&&n.connection.saveData)s=-99;document.documentElement.dataset.tier=s>=6?'high':s>=3?'mid':'low';}catch(e){}})()`,
+          }}
+        />
         <link
           rel="preload"
           as="font"

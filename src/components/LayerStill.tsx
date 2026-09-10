@@ -1,7 +1,3 @@
-'use client';
-
-import { useTier } from '@/lib/store';
-
 type LayerStillProps = {
   src: string;
   alt?: string;
@@ -17,10 +13,8 @@ export function LayerStill({
   width = 1600,
   height = 1000,
 }: LayerStillProps) {
-  const tier = useTier();
-  if (tier !== 'low') return null;
   return (
-    <div className="w-full overflow-hidden border border-hairline bg-field">
+    <div className="layer-still w-full overflow-hidden border border-hairline bg-field">
       <img
         src={src}
         alt={alt}

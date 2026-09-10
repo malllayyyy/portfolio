@@ -253,3 +253,10 @@ html[data-motion="off"] .exhibit-card-animated {
   border-style: none;
   padding: 0;
 }
+
+html[data-tier="high"] .layer-stills,
+html[data-tier="mid"] .layer-stills,
+html[data-tier="high"] .layer-still,
+html[data-tier="mid"] .layer-still {
+  display: none !important;
+}
