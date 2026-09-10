@@ -4,7 +4,6 @@ export const metadata: Metadata = {
   title: '404 \u2014 Depth Not Found \u2014 Malay Chaudhary',
 };
 
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { NotFoundMessage, NotFoundExitLink } from '@/components/NotFoundClient';
 
@@ -20,20 +19,13 @@ export default function NotFound() {
         <h1 className="mt-3 font-display font-semibold text-t-xl text-light">
           This depth does not exist.
         </h1>
-        <p className="mt-6 font-display text-t-base text-muted">
-          The requested path is not part of the stack.
-        </p>
 
         <NotFoundMessage />
 
         <GameMount game="pong" />
 
         <p className="mt-4 font-mono text-t-xs text-muted">
-          Engine sourced from the{' '}
-          <Link href="/project/pong" className="underline decoration-[var(--accent)] text-light">
-            Pong project
-          </Link>{' '}
-          at −120 m.
+          I wrote this Pong when I was starting out, learning game dev. Hope you like it.
         </p>
 
         <NotFoundExitLink />
