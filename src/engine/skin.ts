@@ -4,7 +4,7 @@ export const SKIN = {
   grid: '#1B2430',
   net: '#3A4654',
   netDash: [8, 8] as const,
-  accent: '#FF5F56', // ball, player paddle, orbs, dialogue stroke
+  accent: '#FFC46B', // ball, player paddle, orbs, dialogue stroke
   text: '#EDF1F5',
   panel: '#10151C',
   mono: '14px "JetBrains Mono", ui-monospace, monospace',

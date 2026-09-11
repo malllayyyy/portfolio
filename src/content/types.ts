@@ -1,4 +1,4 @@
-export type LayerId = 'surface' | 'device' | 'engine' | 'reasoning' | 'bedrock';
+export type LayerId = 'surface' | 'device' | 'reasoning' | 'bedrock';
 
 export type Decision = {
   /** Prose, ~40 words. Every claim traces to docs/projects.md. */

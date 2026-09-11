@@ -1,8 +1,13 @@
-/** § 2.2. Monotonic piecewise-linear. 20 control points, t ascending, y descending. */
+/**
+ * § 2.2. Monotonic piecewise-linear. 16 control points, t ascending, y descending.
+ * The four layer-datum control points ([0.1022,0.0], [0.4629,-40.0], [0.7060,-260.0],
+ * [1.000,-300.0]) are pinned to the measured scroll fraction at which each layer's
+ * section actually renders (`document — Step 4 recalibration after Engine removal`),
+ * so `t` genuinely is where the DOM puts that layer, not an assumption about it.
+ */
 export const DEPTH_TABLE: readonly (readonly [t: number, y: number])[] = [
-  [0.000,   +6.0], [0.030,    0.0], [0.075,   -2.0], [0.135,   -8.0],
-  [0.170,  -12.0], [0.235,  -30.0], [0.270,  -36.0], [0.300,  -40.0],
-  [0.330,  -44.0], [0.400,  -52.0], [0.470,  -70.0], [0.560, -112.0],
-  [0.600, -120.0], [0.690, -134.0], [0.730, -150.0], [0.830, -248.0],
-  [0.870, -260.0], [0.930, -278.0], [0.965, -290.0], [1.000, -300.0],
+  [0.0000,   +6.0], [0.1022,    0.0], [0.1623,   -2.0], [0.2425,   -8.0],
+  [0.2892,  -12.0], [0.3761,  -30.0], [0.4228,  -36.0], [0.4629,  -40.0],
+  [0.4757,  -44.0], [0.5056,  -52.0], [0.5354,  -70.0], [0.6889, -248.0],
+  [0.7060, -260.0], [0.8417, -278.0], [0.9208, -290.0], [1.0000, -300.0],
 ] as const;

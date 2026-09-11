@@ -254,7 +254,7 @@ export function initPong(
     ctx.fillText('YOU', WIDTH / 4, 65);
     ctx.fillText('AI OPPONENT', (3 * WIDTH) / 4, 65);
 
-    // Player Paddle (Accent #FF5F56)
+    // Player Paddle (Accent, SKIN.accent)
     ctx.fillStyle = SKIN.accent;
     ctx.shadowBlur = 0;
     ctx.fillRect(20, renderPlayerY, PADDLE_WIDTH, PADDLE_HEIGHT);
@@ -264,7 +264,7 @@ export function initPong(
     ctx.shadowBlur = 0;
     ctx.fillRect(WIDTH - 20 - PADDLE_WIDTH, renderAiY, PADDLE_WIDTH, PADDLE_HEIGHT);
 
-    // Ball (Accent #FF5F56 with 4px shadow)
+    // Ball (Accent, SKIN.accent, with 4px shadow)
     ctx.fillStyle = SKIN.accent;
     ctx.shadowColor = SKIN.accent;
     ctx.shadowBlur = SKIN.ballShadowBlur;

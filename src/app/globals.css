@@ -10,7 +10,6 @@
   --color-muted: #8FA0B0;
   --color-surface-accent: #8FD3FF;
   --color-device-accent: #FFC46B;
-  --color-engine-accent: #FF5F56;
   --color-reasoning-accent: #C8FF6A;
 
   /* § 6.1 families */
@@ -78,7 +77,6 @@
 }
 [data-layer="surface"]   { --accent: var(--color-surface-accent); }
 [data-layer="device"]    { --accent: var(--color-device-accent); }
-[data-layer="engine"]    { --accent: var(--color-engine-accent); }
 [data-layer="reasoning"] { --accent: var(--color-reasoning-accent); }
 [data-layer="bedrock"]   { --accent: var(--color-surface-accent); }
 

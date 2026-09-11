@@ -134,11 +134,9 @@ export function ExhibitCard({
   const accentClass =
     derivedLayer === 'device'
       ? 'text-device-accent'
-      : derivedLayer === 'engine'
-        ? 'text-engine-accent'
-        : derivedLayer === 'reasoning'
-          ? 'text-reasoning-accent'
-          : 'text-surface-accent';
+      : derivedLayer === 'reasoning'
+        ? 'text-reasoning-accent'
+        : 'text-surface-accent';
 
   const handleClick = () => {
     if (onOpen) {

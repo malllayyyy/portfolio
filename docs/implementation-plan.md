@@ -3151,6 +3151,8 @@ Diffs the rendered **text content** of the high-tier route tree against the low-
 Acceptance: `node scripts/assert-tier-parity.mjs` → `parity OK, 13 routes`. Then deliberately break it — add a word to a low-tier-only branch — and confirm the script exits non-zero naming the route.
 
 *Deviation note (2026-09-10 content cut pass): Route count in `routes.ts`, `sitemap.ts`, and `assert-tier-parity.mjs` was reduced from 13 (and 12 in later iterations) to 11 static routes following the removal of `/project/pong` as a project route.*
+*Deviation note (2026-09-11 Engine removal): The Engine layer (route, layer entry, three.js component, OG-image accent, fog band, `LayerId` union member) was deleted at the owner's explicit instruction. `assert-tier-parity.mjs` now reports `parity OK, 10 routes` (11 → 10), `out/sitemap.xml` carries 10 URLs, and the build produces 13 routes instead of 14. `src/content/depth-table.ts` was cut from 20 to 16 control points and every `t` value recalibrated against the actual rendered scroll fraction of each surviving layer's section — see the design-spec note above.*
+
 
 ### Task 6.6: Owner assets into their live slots
 

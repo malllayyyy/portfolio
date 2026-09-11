@@ -12,9 +12,8 @@ const STOPS = LAYERS.filter((l) => l.id !== 'bedrock');
 function getLayer(y: number): Layer {
   const roundedY = Math.round(y);
   if (roundedY > -40) return STOPS[0];
-  if (roundedY > -120) return STOPS[1];
-  if (roundedY > -260) return STOPS[2];
-  return STOPS[3];
+  if (roundedY > -260) return STOPS[1];
+  return STOPS[2];
 }
 
 function formatDepthReadout(y: number): string {
@@ -115,10 +114,6 @@ export function DepthGauge() {
           scrollToT(tOfDepth(-40));
           break;
         case '3':
-          e.preventDefault();
-          scrollToT(tOfDepth(-120));
-          break;
-        case '4':
           e.preventDefault();
           scrollToT(tOfDepth(-260));
           break;

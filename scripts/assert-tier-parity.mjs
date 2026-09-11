@@ -12,7 +12,6 @@ const REQUIRED_PHRASES = [
   'Malay Chaudhary',
   'SURFACE',
   'DEVICE',
-  'ENGINE',
   'REASONING',
   'BEDROCK'
 ];
@@ -23,7 +22,6 @@ const ROUTES = [
   'out/resume.html',
   'out/layer/surface.html',
   'out/layer/device.html',
-  'out/layer/engine.html',
   'out/layer/reasoning.html',
   'out/project/deployment-platform.html',
   'out/project/proacademys.html',

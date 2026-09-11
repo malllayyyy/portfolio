@@ -3,6 +3,14 @@
 **Status:** plan only. No code in this document is to be pasted; nothing here has been
 executed. Written read-only against HEAD `8ca4212`, branch `main`.
 
+*Deviation note (2026-09-11 Engine removal): Proposal 1 in this document — the Pong-court
+converge built into `src/three/layers/Engine.tsx`'s ghost shader (`aTarget`/`uFocus`,
+40 targets at `y = −124`) — was deleted along with the rest of the Engine layer at the
+owner's explicit instruction to remove the Engine/Game descent section entirely. Pong
+itself is unaffected: it continues to run exactly where the 2026-09-10 content-cut pass
+put it, on the 404 page only (`src/app/not-found.tsx`, `src/engine/pong.ts`), which was
+never part of this document's proposal.*
+
 ## The brief, as I read it
 
 The content cut removed ~69 % of body copy. Anything proposed here that adds paragraphs

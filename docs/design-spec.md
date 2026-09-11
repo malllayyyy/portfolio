@@ -24,6 +24,8 @@ One uncut Three.js camera descent through four depths of a computing stack. Scro
 | −300 m | **Bedrock** | — | About, résumé, contact; canvas unmounts |
 
 *Deviation note (2026-09-10 content cut pass): Pong was removed as a descent exhibit and project route (`/project/pong`). The Engine layer has no in-page exhibit or play volume. Pong lives exclusively on the 404 page (`src/app/not-found.tsx`), and Pixel Quest was removed entirely.*
+*Deviation note (2026-09-11 Engine removal): The Engine/Game layer was deleted entirely at the owner's explicit instruction, not just its play volumes. The descent is now three layers plus Bedrock: Surface (0 m), Device (−40 m), Reasoning (−260 m), Bedrock (−300 m). `src/three/layers/Engine.tsx` and `public/stills/engine.avif` were deleted; the `--color-engine-accent` (`#FF5F56`) token, its `[data-layer="engine"]` rule, and its fog band were removed, closing the palette to nine tokens. Pong stays exactly where the previous deviation note put it — the 404 page only — untouched by this pass. The depth table's 20 control points became 16, re-derived and recalibrated against the real rendered position of each layer's section (see `docs/improve-pass.md` § 1 and § 3 Proposal 1) rather than an assumed document height.*
+
 
 The signature moment is the **screen pass-through** at −40 m: the camera descends into a monolithic phone whose screen is a live render target of the layer below; at the exact frame the camera crosses the screen plane, the render target *becomes* the scene. No cut, no loader, no dissolve. Section 2.6 specifies the mechanic precisely enough to build without invention.
 

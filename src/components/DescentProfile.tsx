@@ -54,7 +54,7 @@ export function DescentProfile() {
           <title id="descent-profile-title">The descent profile</title>
           <desc id="descent-profile-desc">
             A chart plotting vertical camera depth against scroll progress across {pointsCount} control points.
-            It marks four layer datums: Surface at 0 metres, Device at -40 metres, Engine at -120 metres,
+            It marks three layer datums: Surface at 0 metres, Device at -40 metres,
             and Reasoning at -260 metres, terminating at Bedrock at -300 metres.
           </desc>
 

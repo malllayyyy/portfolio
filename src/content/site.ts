@@ -11,7 +11,7 @@ export const SITE = {
 
   /** OQ2: § 13.1 candidate B, demoted to the sub-line beneath the hero. */
   heroSub:
-    'Four layers of the same stack: a deploy platform, a rewrite of a client\'s e-learning site, a POS that runs a gaming cafe, and a control plane for AI agents.',
+    'Three layers of the same stack: a deploy platform, a rewrite of a client\'s e-learning site, and a POS that runs a gaming cafe, down to a control plane for AI agents.',
 
   /** § 13.1 standing sub-line — not itself pending, sits under heroSub. */
   standing: 'B.Tech CSE, IIIT Naya Raipur. Scroll to descend — four layers, one shot.',
@@ -22,7 +22,7 @@ export const SITE = {
 
   /** OQ2: § 13.2 candidate 3 — social. 145 ch. */
   ogDescription:
-    'Web, app, game, agent — four depths of one stack. Portfolio of Malay Chaudhary, told as a single uncut descent through the layers he builds on.',
+    'Web, app, agent \u2014 three depths of one stack. Portfolio of Malay Chaudhary, told as a single uncut descent through the layers he builds on.',
 
   email: 'malayrc276@gmail.com',
   github: 'https://github.com/malllayyyy',

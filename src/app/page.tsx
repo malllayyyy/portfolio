@@ -34,7 +34,7 @@ export function Descent() {
       />
       <DepthGauge />
       <Hero />
-      <main className="relative min-h-[900vh]">
+      <main className="relative">
         {LAYERS.filter((l) => l.id !== 'bedrock').map((layer) => (
           <LayerSection key={layer.id} layer={layer}>
             {PROJECTS.filter((p) => p.layer === layer.id).map((p) => (

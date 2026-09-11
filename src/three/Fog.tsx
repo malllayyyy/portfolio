@@ -9,15 +9,13 @@ const FOG_TABLE = [
   { y: -12.0, color: new Color('#171A1E'), density: 0.018 },
   { y: -40.0, color: new Color('#1E1A12'), density: 0.022 },
   { y: -70.0, color: new Color('#14090A'), density: 0.026 },
-  { y: -150.0, color: new Color('#0A0C10'), density: 0.028 },
   { y: -260.0, color: new Color('#06080B'), density: 0.032 },
 ] as const;
 
 const ACCENT_COLORS = [
   new Color('#8FD3FF'), // Surface (y > -40)
   new Color('#FFC46B'), // Device (-40 >= y > -70)
-  new Color('#FF5F56'), // Engine (-70 >= y > -150)
-  new Color('#C8FF6A'), // Reasoning (y <= -150)
+  new Color('#C8FF6A'), // Reasoning (y <= -70)
 ] as const;
 
 const tempFogColor = new Color();
@@ -47,8 +45,7 @@ function getFogAtY(y: number, outColor: Color): number {
 
 function getDirectionalIntensityAtY(y: number): number {
   if (y >= 0) return 0.9;
-  if (y >= -120) return 0.9 + (y / -120) * (0.50 - 0.9);
-  if (y >= -260) return 0.50 + ((y + 120) / -140) * (0.15 - 0.50);
+  if (y >= -260) return 0.9 + (y / -260) * (0.15 - 0.9);
   return 0.15;
 }
 

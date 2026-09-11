@@ -13,7 +13,7 @@ export function NotFoundMessage() {
       <p className="mt-3 font-display text-t-base text-muted">
         {prefersReduced
           ? 'Nothing is here. Playing Pong below is optional and never auto-starts.'
-          : 'Nothing is here. The engine from −120 m is, though.'}
+          : 'Nothing is here. The Pong below is, though.'}
       </p>
       <p className="mt-6 font-mono text-t-sm">
         <Link

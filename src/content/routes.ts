@@ -7,7 +7,6 @@ export const ROUTES: RouteEntry[] = [
   { path: '/',                            depth:   +6, title: 'Malay Chaudhary \u2014 Substrate',   description: SITE.metaDescription, openPanel: null },
   { path: '/layer/surface',               depth:    0, title: t('Surface \u2014 Web'),              description: 'Depth 0 m. A self-hosted PaaS and a MERN rewrite of a legacy e-learning platform.', openPanel: null },
   { path: '/layer/device',                depth:  -40, title: t('Device \u2014 App'),               description: 'Depth \u221240 m. A gaming-cafe POS built for Windows 7 and a spinning disk.', openPanel: null },
-  { path: '/layer/engine',                depth: -120, title: t('Engine \u2014 Game'),              description: 'Depth \u2212120 m. Where I started: a Canvas 2D Pong written to learn game dev.', openPanel: null },
   { path: '/layer/reasoning',             depth: -260, title: t('Reasoning \u2014 Agentic AI'),     description: 'Depth \u2212260 m. A real-time control switchboard for Oh My Pi subagents.', openPanel: null },
   { path: '/project/deployment-platform', depth:   -2, title: t('deployment-platform'),        description: 'Self-hosted PaaS: isolated Docker builds, MinIO buckets, atomic zero-downtime swaps.', openPanel: 'deployment-platform' },
   { path: '/project/proacademys',         depth:   -8, title: t('ProAcademys'),                description: 'MERN rewrite of a PHP/Laravel e-learning platform, production data migration included.', openPanel: 'proacademys' },

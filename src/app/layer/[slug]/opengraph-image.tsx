@@ -8,7 +8,6 @@ export const contentType = 'image/png';
 const LAYER_ACCENTS: Record<string, string> = {
   surface: '#8FD3FF',
   device: '#FFC46B',
-  engine: '#FF5F56',
   reasoning: '#C8FF6A',
 };
 
