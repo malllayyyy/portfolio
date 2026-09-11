@@ -1,5 +1,3 @@
-'use client';
-
 import type { ReactNode } from 'react';
 import type { Layer, LayerId } from '@/content/types';
 import { LayerStill } from '@/components/LayerStill';

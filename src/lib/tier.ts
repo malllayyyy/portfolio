@@ -102,3 +102,21 @@ export function setTierOverride(t: Tier): void {
   localStorage.setItem('substrate-tier', t);
   location.reload();
 }
+
+/**
+ * Pre-paint tier guess, inlined into <head> by src/app/layout.tsx so the
+ * layer-still CSS gate resolves before the first paint instead of after
+ * hydration (which cost CLS 0.0627 and flashed the stills).
+ *
+ * It lives here, beside detectTier(), on purpose: it mirrors that scoring and
+ * WILL silently drift if the two are maintained apart. Any change to
+ * detectTier()'s weights must be mirrored in this string.
+ *
+ * One deliberate divergence: it does NOT call webglSupported(). That probe
+ * allocates a canvas and a GL context, and must not block the first paint.
+ * TierBoot re-runs the real detectTier() in a useLayoutEffect, which still
+ * runs before paint, so a device without WebGL is demoted there rather than
+ * here. The only cost of the divergence is that such a device briefly scores
+ * as mid/high in this string before being corrected in the same frame.
+ */
+export const TIER_BOOT_SCRIPT = `(function(){try{var o=localStorage.getItem('substrate-tier');if(o==='low'||o==='mid'||o==='high'){document.documentElement.dataset.tier=o;return;}var n=navigator,s=0,c=n.hardwareConcurrency||2,m=n.deviceMemory||2;if(c>=8)s+=2;else if(c>=4)s+=1;if(m>=8)s+=2;else if(m>=4)s+=1;if(window.matchMedia('(min-width: 1024px)').matches)s+=1;if(window.matchMedia('(pointer: fine)').matches)s+=1;if(window.devicePixelRatio<=2)s+=1;if(n.connection&&n.connection.saveData)s=-99;if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)s=Math.min(s,3);document.documentElement.dataset.tier=s>=6?'high':s>=3?'mid':'low';}catch(e){}})()`;

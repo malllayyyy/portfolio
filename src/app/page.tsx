@@ -49,10 +49,12 @@ export function Descent() {
           className="page border-t border-hairline py-24"
         >
           <div className="lg:col-span-12">
-            <p className="font-mono text-t-xs text-muted">−300 m · BEDROCK</p>
-            <h2 id="bedrock-h" className="mt-3 font-display font-semibold text-t-xl text-light">
-              About
-            </h2>
+            <div className="inline-block bg-field border border-hairline px-6 py-4">
+              <p className="font-mono text-t-xs text-muted">−300 m · BEDROCK</p>
+              <h2 id="bedrock-h" className="mt-3 font-display font-semibold text-t-xl text-light">
+                About
+              </h2>
+            </div>
             <div className="mt-12 flex flex-col gap-12 lg:flex-row lg:gap-24">
               <PortraitSlot />
               <div className="prose-measure bg-field border border-hairline p-6 sm:p-8">
