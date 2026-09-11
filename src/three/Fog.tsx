@@ -14,8 +14,8 @@ const FOG_TABLE = [
 
 const ACCENT_COLORS = [
   new Color('#8FD3FF'), // Surface (y > -40)
-  new Color('#FFC46B'), // Device (-40 >= y > -70)
-  new Color('#C8FF6A'), // Reasoning (y <= -70)
+  new Color('#FFC46B'), // Device (-40 >= y > -150)
+  new Color('#C8FF6A'), // Reasoning (y <= -150)
 ] as const;
 
 const tempFogColor = new Color();
@@ -49,11 +49,19 @@ function getDirectionalIntensityAtY(y: number): number {
   return 0.15;
 }
 
+/**
+ * Index into ACCENT_COLORS, one entry per surviving layer.
+ *
+ * The Reasoning boundary is -150 rather than its -260 datum because the accent
+ * light has to agree with the geometry it is lighting, not with the gauge's
+ * label. Reasoning's node cloud spans -248 to -293 and fog visibility is about
+ * 100 m, so the field comes into view around -150. Lighting it with Device's
+ * amber while it is the only thing on screen turned the whole approach muddy.
+ */
 function getLayerIndex(y: number): number {
-  if (y > -40) return 0;
-  if (y > -70) return 1;
-  if (y > -150) return 2;
-  return 3;
+  if (y > -40) return 0; // Surface
+  if (y > -150) return 1; // Device, and the empty transit below it
+  return 2; // Reasoning, from the moment its field is visible
 }
 
 export function Fog() {

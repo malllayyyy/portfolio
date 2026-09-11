@@ -9,10 +9,18 @@ import type { Layer } from '@/content/types';
 
 const STOPS = LAYERS.filter((l) => l.id !== 'bedrock');
 
+/**
+ * Which layer the visitor is actually inside, by what surrounds them rather
+ * than by the last datum they passed. The -150 boundary is shared with
+ * getLayerIndex() in src/three/Fog.tsx: Reasoning's node cloud spans -248 to
+ * -293 and fog visibility is ~100 m, so from -150 down the field is what you
+ * see. Before Engine was removed the datums were close enough that "last datum
+ * passed" agreed with this; with a 220 m gap it no longer does.
+ */
 function getLayer(y: number): Layer {
   const roundedY = Math.round(y);
   if (roundedY > -40) return STOPS[0];
-  if (roundedY > -260) return STOPS[1];
+  if (roundedY > -150) return STOPS[1];
   return STOPS[2];
 }
 
