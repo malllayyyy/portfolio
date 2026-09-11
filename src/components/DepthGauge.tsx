@@ -35,9 +35,19 @@ export function DepthGauge() {
   const activeLayer = STOPS.find((l) => l.id === activeLayerId) ?? STOPS[0];
 
   const readoutRef = useRef<HTMLSpanElement>(null);
+  const readoutWrapRef = useRef<HTMLDivElement>(null);
 
-  // Imperative DOM update for readout when integer meter changes
+  // Imperative DOM update for readout when integer meter changes.
+  // `store.t` is only ever published by Rig.tsx's useFrame (single-subscription
+  // invariant); with no 3D mounted (low tier) it never moves, so the readout would
+  // freeze at its initial value and lie. Suppress it there instead of showing a
+  // number the site cannot measure — the four jump buttons stay live regardless,
+  // since they compute from scrollHeight directly.
   useEffect(() => {
+    if (document.documentElement.dataset.tier === 'low') {
+      if (readoutWrapRef.current) readoutWrapRef.current.style.display = 'none';
+      return;
+    }
     let lastMeter = Math.round(depth(getSnapshot().t));
     if (readoutRef.current) {
       readoutRef.current.textContent = formatDepthReadout(depth(getSnapshot().t));
@@ -152,17 +162,18 @@ export function DepthGauge() {
   return (
     <nav
       aria-label="Depth navigation"
-      className="fixed left-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-center w-12 gap-6 pointer-events-auto"
+      className="fixed inset-x-0 bottom-0 z-40 flex flex-row items-center justify-center gap-6 border-t border-hairline bg-field px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pointer-events-auto lg:inset-x-auto lg:bottom-auto lg:left-6 lg:top-1/2 lg:-translate-y-1/2 lg:flex-col lg:w-12 lg:gap-6 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0"
     >
       <div
+        ref={readoutWrapRef}
         aria-hidden="true"
-        className="font-mono text-t-xs text-muted select-none whitespace-nowrap [writing-mode:vertical-lr] rotate-180 flex items-center justify-center tracking-wider"
+        className="font-mono text-t-xs text-muted select-none whitespace-nowrap flex items-center justify-center tracking-wider lg:[writing-mode:vertical-lr] lg:rotate-180"
       >
         <span ref={readoutRef}>{formatDepthReadout(initialY)}</span>
       </div>
 
-      <div className="relative flex flex-col items-center gap-4 py-2">
-        <div className="absolute top-0 bottom-0 w-[1px] bg-hairline -z-10" />
+      <div className="relative flex flex-row items-center gap-4 px-2 lg:flex-col lg:py-2 lg:px-0">
+        <div className="absolute inset-x-0 h-[1px] bg-hairline -z-10 lg:inset-x-auto lg:inset-y-0 lg:w-[1px] lg:h-auto" />
 
         {STOPS.map((layer) => {
           const isCurrent = activeLayer.id === layer.id;
@@ -177,7 +188,7 @@ export function DepthGauge() {
               type="button"
               onClick={() => handleClickDatum(layer.datum)}
               aria-label={`Jump to ${layer.name} (${formattedDatum})`}
-              className={`relative group flex items-center justify-center w-6 h-6 rounded-full cursor-pointer transition-colors outline-[#8FD3FF] focus:outline-[#8FD3FF] focus-visible:outline-[#8FD3FF] focus:outline-2 focus-visible:outline-2 focus:outline-offset-[3px] focus-visible:outline-offset-[3px] ${
+              className={`relative group flex items-center justify-center w-11 h-11 lg:w-6 lg:h-6 rounded-full cursor-pointer transition-colors outline-[#8FD3FF] focus:outline-[#8FD3FF] focus-visible:outline-[#8FD3FF] focus:outline-2 focus-visible:outline-2 focus:outline-offset-[3px] focus-visible:outline-offset-[3px] ${
                 isCurrent ? 'text-light' : 'text-muted hover:text-light'
               }`}
             >
@@ -189,7 +200,7 @@ export function DepthGauge() {
                 }`}
               />
 
-              <span className="absolute left-full ml-3 px-2 py-1 bg-strata border border-hairline rounded font-mono text-t-xs text-light whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity pointer-events-none shadow-md">
+              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 lg:bottom-auto lg:left-full lg:top-1/2 lg:-translate-y-1/2 lg:translate-x-0 lg:ml-3 lg:mb-0 px-2 py-1 bg-strata border border-hairline rounded font-mono text-t-xs text-light whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity pointer-events-none shadow-md">
                 {layer.name} ({formattedDatum})
               </span>
             </button>

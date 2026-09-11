@@ -21,7 +21,7 @@ export function LayerSection({ layer, children }: { layer: Layer; children: Reac
       aria-labelledby={`${layer.id}-h`}
       className="page border-t border-hairline py-24"
     >
-      <div className="lg:col-span-12">
+      <div className="lg:col-span-7">
 {stills.length > 0 && (
   <div className="layer-stills mb-8 flex flex-col gap-6">
     {stills.map((still) => (
