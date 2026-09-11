@@ -18,11 +18,6 @@ export default function AboutPage() {
             <p className="font-display text-t-base text-light">
               {SITE.name} — {SITE.credential}.
             </p>
-            <p className="mt-6 font-display text-t-base text-light">
-              Four domains, four depths of one stack: a self-hosted PaaS and a client rewrite at the
-              surface, a gaming-cafe POS below that, the games I learned on further down, and a
-              control plane for AI agents at the bottom.
-            </p>
           </div>
         </div>
         <div className="mt-16">
