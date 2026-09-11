@@ -15,16 +15,11 @@ const ActiveExhibitCard = dynamic(
   () => import('./ActiveExhibitCard').then((m) => m.ActiveExhibitCard),
   { ssr: false }
 );
-const VisitReadout = dynamic(
-  () => import('./VisitReadout').then((m) => m.VisitReadout),
-  { ssr: false }
-);
 export function DeferredOverlays() {
   return (
     <>
       <ActiveExhibitCard />
       <DetailPanel />
-      <VisitReadout />
     </>
   );
 }
