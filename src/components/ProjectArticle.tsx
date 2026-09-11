@@ -63,7 +63,7 @@ export function ProjectArticle({ project: p }: { project: Project }) {
         </h3>
       )}
       <p className="mt-3 font-display text-t-md text-light prose-measure m-0">{p.thesis}</p>
-      <LinkRow links={p.links} />
+      <LinkRow links={p.presentation.kind === 'links' ? p.links.filter((l) => l.label !== 'Live demo') : p.links} />
       <DecisionList decisions={p.decisions} />
       <div className="mt-12">
         {p.presentation.kind === 'diagram' && p.presentation.component === 'deployment-platform' && (
@@ -78,6 +78,16 @@ export function ProjectArticle({ project: p }: { project: Project }) {
             {trace && <TraceStepList steps={trace.steps} />}
           </>
         )}
+        {p.presentation.kind === 'links' &&
+          p.links.find((l) => l.label === 'Live demo') && (
+            <a
+              href={p.links.find((l) => l.label === 'Live demo')!.href}
+              className="block w-full border border-hairline bg-strata p-6 font-mono text-t-md text-light underline decoration-[var(--accent)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-4"
+            >
+              <span className="mr-3 text-accent font-semibold no-underline">LIVE</span>
+              {p.links.find((l) => l.label === 'Live demo')!.href}
+            </a>
+          )}
       </div>
       <p className="mt-12 font-display text-t-base text-muted prose-measure border-l border-hairline pl-6 m-0">
         {p.honesty}
